@@ -5,14 +5,19 @@ import { cleanupDatabase, getTestDatabase } from "../setup";
 
 class CollectingLogger implements Logger {
   queries: Array<{ query: string; parameters?: any[] }> = [];
-  errors: Array<{ error: string | Error; query: string; parameters?: any[] }> = [];
+  errors: Array<{ error: string | Error; query: string; parameters?: any[] }> =
+    [];
   slowQueries: Array<{ time: number; query: string; parameters?: any[] }> = [];
 
   logQuery(query: string, parameters?: any[]): void {
     this.queries.push({ query, parameters });
   }
 
-  logQueryError(error: string | Error, query: string, parameters?: any[]): void {
+  logQueryError(
+    error: string | Error,
+    query: string,
+    parameters?: any[],
+  ): void {
     this.errors.push({ error, query, parameters });
   }
 
@@ -47,7 +52,9 @@ describe("Logging and Query Events", () => {
     await dataSource.initialize();
     await dataSource.query("SELECT ? as value", [1]);
 
-    expect(logger.queries.some((entry) => entry.query === "SELECT ? as value")).toBe(true);
+    expect(
+      logger.queries.some((entry) => entry.query === "SELECT ? as value"),
+    ).toBe(true);
     await dataSource.destroy();
   });
 
@@ -62,7 +69,9 @@ describe("Logging and Query Events", () => {
     });
 
     await dataSource.initialize();
-    await expect(dataSource.query("SELECT * FROM missing_logging_table")).rejects.toThrow();
+    await expect(
+      dataSource.query("SELECT * FROM missing_logging_table"),
+    ).rejects.toThrow();
 
     expect(logger.errors.length).toBeGreaterThan(0);
     expect(logger.errors[0].query).toContain("missing_logging_table");
@@ -88,7 +97,12 @@ describe("Logging and Query Events", () => {
   });
 
   it("broadcasts before and after query events for success and failure", async () => {
-    const events: Array<{ type: string; query: string; success?: boolean; error?: unknown }> = [];
+    const events: Array<{
+      type: string;
+      query: string;
+      success?: boolean;
+      error?: unknown;
+    }> = [];
     const dataSource = createD1DataSource({
       database: await getTestDatabase(),
       entities: [],
@@ -112,15 +126,28 @@ describe("Logging and Query Events", () => {
     } as any);
 
     await dataSource.query("SELECT 1");
-    await expect(dataSource.query("SELECT * FROM missing_broadcast_table")).rejects.toThrow();
+    await expect(
+      dataSource.query("SELECT * FROM missing_broadcast_table"),
+    ).rejects.toThrow();
 
     expect(events).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ type: "before", query: "SELECT 1" }),
-        expect.objectContaining({ type: "after", query: "SELECT 1", success: true }),
-        expect.objectContaining({ type: "before", query: "SELECT * FROM missing_broadcast_table" }),
-        expect.objectContaining({ type: "after", query: "SELECT * FROM missing_broadcast_table", success: false }),
-      ])
+        expect.objectContaining({
+          type: "after",
+          query: "SELECT 1",
+          success: true,
+        }),
+        expect.objectContaining({
+          type: "before",
+          query: "SELECT * FROM missing_broadcast_table",
+        }),
+        expect.objectContaining({
+          type: "after",
+          query: "SELECT * FROM missing_broadcast_table",
+          success: false,
+        }),
+      ]),
     );
     await dataSource.destroy();
   });

@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -39,23 +46,23 @@ describe("Complex Queries Tests", () => {
       // Create test data
       const user1 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["John Doe", "john@example.com", 1]
+        ["John Doe", "john@example.com", 1],
       );
       const user1Id = user1;
 
       const user2 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Jane Doe", "jane@example.com", 1]
+        ["Jane Doe", "jane@example.com", 1],
       );
       const user2Id = user2;
 
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content 1", user1Id]
+        ["Post 1", "Content 1", user1Id],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 2", "Content 2", user2Id]
+        ["Post 2", "Content 2", user2Id],
       );
     });
 
@@ -97,14 +104,15 @@ describe("Complex Queries Tests", () => {
       // Create profile data
       const userId = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Test User", "test@example.com", 1]
+        ["Test User", "test@example.com", 1],
       );
       await queryRunner.query(
         "INSERT INTO profiles (bio, userId) VALUES (?, ?)",
-        ["Test bio", userId]
+        ["Test bio", userId],
       );
 
-      const result = await queryRunner.query(`
+      const result = await queryRunner.query(
+        `
         SELECT 
           u.name as userName,
           p.title as postTitle,
@@ -113,7 +121,9 @@ describe("Complex Queries Tests", () => {
         LEFT JOIN posts p ON p.authorId = u.id
         LEFT JOIN profiles pr ON pr.userId = u.id
         WHERE u.id = ?
-      `, [userId]);
+      `,
+        [userId],
+      );
 
       expect(result.length).toBeGreaterThan(0);
     });
@@ -124,15 +134,15 @@ describe("Complex Queries Tests", () => {
       // Create test data
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["John Doe", "john@example.com", 1, 30]
+        ["John Doe", "john@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Jane Doe", "jane@example.com", 1, 25]
+        ["Jane Doe", "jane@example.com", 1, 25],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Bob Smith", "bob@example.com", 1, 35]
+        ["Bob Smith", "bob@example.com", 1, 35],
       );
     });
 
@@ -188,24 +198,27 @@ describe("Complex Queries Tests", () => {
     it("should handle correlated subquery", async () => {
       const userId = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author", "author@example.com", 1]
+        ["Author", "author@example.com", 1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content", userId]
+        ["Post 1", "Content", userId],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 2", "Content", userId]
+        ["Post 2", "Content", userId],
       );
 
-      const result = await queryRunner.query(`
+      const result = await queryRunner.query(
+        `
         SELECT 
           u.name,
           (SELECT COUNT(*) FROM posts p WHERE p.authorId = u.id) as postCount
         FROM users u
         WHERE u.id = ?
-      `, [userId]);
+      `,
+        [userId],
+      );
 
       expect(result.length).toBe(1);
       expect(result[0].postCount).toBe(2);
@@ -214,11 +227,11 @@ describe("Complex Queries Tests", () => {
     it("should handle EXISTS subquery", async () => {
       const userId = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author", "author@example.com", 1]
+        ["Author", "author@example.com", 1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content", userId]
+        ["Post 1", "Content", userId],
       );
 
       const result = await queryRunner.query(`
@@ -235,11 +248,11 @@ describe("Complex Queries Tests", () => {
     it("should handle IN subquery", async () => {
       const userId = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author", "author@example.com", 1]
+        ["Author", "author@example.com", 1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content", userId]
+        ["Post 1", "Content", userId],
       );
 
       const result = await queryRunner.query(`
@@ -256,15 +269,15 @@ describe("Complex Queries Tests", () => {
     beforeEach(async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["John Doe", "john@example.com", 1, 30]
+        ["John Doe", "john@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Jane Doe", "jane@example.com", 1, 25]
+        ["Jane Doe", "jane@example.com", 1, 25],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Bob Smith", "bob@example.com", 1, 35]
+        ["Bob Smith", "bob@example.com", 1, 35],
       );
     });
 
@@ -338,11 +351,11 @@ describe("Complex Queries Tests", () => {
     beforeEach(async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["John Doe", "john@example.com", 1]
+        ["John Doe", "john@example.com", 1],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Jane Doe", "jane@example.com", 1]
+        ["Jane Doe", "jane@example.com", 1],
       );
     });
 
@@ -387,19 +400,19 @@ describe("Complex Queries Tests", () => {
       // Create test data with various ages
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 1", "user1@example.com", 1, 20]
+        ["User 1", "user1@example.com", 1, 20],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 2", "user2@example.com", 1, 25]
+        ["User 2", "user2@example.com", 1, 25],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 3", "user3@example.com", 1, 30]
+        ["User 3", "user3@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 4", "user4@example.com", 1, 35]
+        ["User 4", "user4@example.com", 1, 35],
       );
     });
 
@@ -463,15 +476,15 @@ describe("Complex Queries Tests", () => {
     beforeEach(async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 1", "user1@example.com", 1, 30]
+        ["User 1", "user1@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 2", "user2@example.com", 1, null]
+        ["User 2", "user2@example.com", 1, null],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 3", "user3@example.com", 1, 25]
+        ["User 3", "user3@example.com", 1, 25],
       );
     });
 
@@ -489,18 +502,19 @@ describe("Complex Queries Tests", () => {
     it("should handle NULL in JOINs", async () => {
       const userId1 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author 1", "author1@example.com", 1]
+        ["Author 1", "author1@example.com", 1],
       );
       const userId2 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author 2", "author2@example.com", 1]
+        ["Author 2", "author2@example.com", 1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content", userId1]
+        ["Post 1", "Content", userId1],
       );
       // User 2 has no posts, so LEFT JOIN will show NULL for postTitle
-      const result = await queryRunner.query(`
+      const result = await queryRunner.query(
+        `
         SELECT 
           u.name as userName,
           p.title as postTitle
@@ -508,7 +522,9 @@ describe("Complex Queries Tests", () => {
         LEFT JOIN posts p ON p.authorId = u.id
         WHERE u.id IN (?, ?)
         ORDER BY u.id, p.id
-      `, [userId1, userId2]);
+      `,
+        [userId1, userId2],
+      );
 
       expect(result.length).toBeGreaterThan(0);
       // Should have at least one row with NULL postTitle (user with no posts)
@@ -567,24 +583,24 @@ describe("Complex Queries Tests", () => {
     beforeEach(async () => {
       const userId1 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author 1", "author1@example.com", 1]
+        ["Author 1", "author1@example.com", 1],
       );
       const userId2 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author 2", "author2@example.com", 1]
+        ["Author 2", "author2@example.com", 1],
       );
 
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content", userId1]
+        ["Post 1", "Content", userId1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 2", "Content", userId1]
+        ["Post 2", "Content", userId1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 3", "Content", userId2]
+        ["Post 3", "Content", userId2],
       );
     });
 
@@ -610,4 +626,3 @@ describe("Complex Queries Tests", () => {
     });
   });
 });
-

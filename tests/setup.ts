@@ -3,8 +3,8 @@ import { Miniflare } from "miniflare";
 import { D1Database } from "../src/types";
 
 /**
- * Test setup and teardown for D1 database tests
- * Uses Miniflare to create a local D1 database instance for testing
+ * Test setup and teardown for D1 database tests Uses Miniflare to create a
+ * local D1 database instance for testing
  */
 
 let mf: Miniflare | undefined;
@@ -18,15 +18,15 @@ export async function getTestDatabase(): Promise<D1Database> {
       d1Databases: { TEST_DB: "test-db" },
     });
   }
-  
+
   if (!db) {
     db = (await mf.getD1Database("TEST_DB")) as D1Database;
-    
+
     if (!db) {
       throw new Error("Failed to get D1 database from Miniflare bindings.");
     }
   }
-  
+
   return db;
 }
 
@@ -34,10 +34,12 @@ export async function cleanupDatabase(): Promise<void> {
   if (db) {
     try {
       // Get all tables and drop them
-      const tables = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'"
-      ).all<{ name: string }>();
-      
+      const tables = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'",
+        )
+        .all<{ name: string }>();
+
       if (tables.results) {
         for (const table of tables.results) {
           try {
@@ -47,12 +49,14 @@ export async function cleanupDatabase(): Promise<void> {
           }
         }
       }
-      
+
       // Also drop all indices
-      const indices = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'"
-      ).all<{ name: string }>();
-      
+      const indices = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'",
+        )
+        .all<{ name: string }>();
+
       if (indices.results) {
         for (const index of indices.results) {
           try {
@@ -76,7 +80,9 @@ export async function closeDatabase(): Promise<void> {
   }
 }
 
-const jestAfterAll = (globalThis as { afterAll?: (fn: () => Promise<void>) => void }).afterAll;
+const jestAfterAll = (
+  globalThis as { afterAll?: (fn: () => Promise<void>) => void }
+).afterAll;
 if (typeof jestAfterAll === "function") {
   jestAfterAll(async () => {
     await closeDatabase();

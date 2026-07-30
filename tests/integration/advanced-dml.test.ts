@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -39,11 +46,11 @@ describe("Advanced DML Operations Tests", () => {
       // Create source data
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["John Doe", "john@example.com", 1, 30]
+        ["John Doe", "john@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Jane Doe", "jane@example.com", 1, 25]
+        ["Jane Doe", "jane@example.com", 1, 25],
       );
     });
 
@@ -117,7 +124,7 @@ describe("Advanced DML Operations Tests", () => {
       // Insert initial data
       await queryRunner.query(
         "INSERT INTO test_upsert (email, name, score) VALUES (?, ?, ?)",
-        ["test@example.com", "Test User", 10]
+        ["test@example.com", "Test User", 10],
       );
     });
 
@@ -133,7 +140,9 @@ describe("Advanced DML Operations Tests", () => {
         ON CONFLICT(email) DO NOTHING
       `);
 
-      const result = await queryRunner.query("SELECT * FROM test_upsert WHERE email = 'test@example.com'");
+      const result = await queryRunner.query(
+        "SELECT * FROM test_upsert WHERE email = 'test@example.com'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].name).toBe("Test User"); // Original value preserved
       expect(result[0].score).toBe(10);
@@ -149,7 +158,9 @@ describe("Advanced DML Operations Tests", () => {
           score = excluded.score
       `);
 
-      const result = await queryRunner.query("SELECT * FROM test_upsert WHERE email = 'test@example.com'");
+      const result = await queryRunner.query(
+        "SELECT * FROM test_upsert WHERE email = 'test@example.com'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].name).toBe("Updated User"); // Updated
       expect(result[0].score).toBe(30); // Updated
@@ -164,7 +175,9 @@ describe("Advanced DML Operations Tests", () => {
           score = excluded.score
       `);
 
-      const result = await queryRunner.query("SELECT * FROM test_upsert WHERE email = 'test@example.com'");
+      const result = await queryRunner.query(
+        "SELECT * FROM test_upsert WHERE email = 'test@example.com'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].name).toBe("Test User"); // Original name preserved
       expect(result[0].score).toBe(50); // Score updated
@@ -175,11 +188,11 @@ describe("Advanced DML Operations Tests", () => {
     beforeEach(async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["John Doe", "john@example.com", 1, 30]
+        ["John Doe", "john@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Jane Doe", "jane@example.com", 1, 25]
+        ["Jane Doe", "jane@example.com", 1, 25],
       );
     });
 
@@ -190,7 +203,9 @@ describe("Advanced DML Operations Tests", () => {
         WHERE name = 'John Doe'
       `);
 
-      const result = await queryRunner.query("SELECT age FROM users WHERE name = 'John Doe'");
+      const result = await queryRunner.query(
+        "SELECT age FROM users WHERE name = 'John Doe'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].age).toBe(31);
     });
@@ -204,9 +219,13 @@ describe("Advanced DML Operations Tests", () => {
         END
       `);
 
-      const john = await queryRunner.query("SELECT age FROM users WHERE name = 'John Doe'");
-      const jane = await queryRunner.query("SELECT age FROM users WHERE name = 'Jane Doe'");
-      
+      const john = await queryRunner.query(
+        "SELECT age FROM users WHERE name = 'John Doe'",
+      );
+      const jane = await queryRunner.query(
+        "SELECT age FROM users WHERE name = 'Jane Doe'",
+      );
+
       expect(john[0].age).toBe(31); // 30 + 1
       expect(jane[0].age).toBe(30); // 25 + 5
     });
@@ -218,7 +237,9 @@ describe("Advanced DML Operations Tests", () => {
         WHERE name = 'John Doe'
       `);
 
-      const result = await queryRunner.query("SELECT name FROM users WHERE name LIKE '%John Doe%'");
+      const result = await queryRunner.query(
+        "SELECT name FROM users WHERE name LIKE '%John Doe%'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].name).toContain("John Doe");
       expect(result[0].name).toContain("Updated");
@@ -227,7 +248,7 @@ describe("Advanced DML Operations Tests", () => {
     it("should update with COALESCE", async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["Null Age", "nullage@example.com", 1, null]
+        ["Null Age", "nullage@example.com", 1, null],
       );
 
       await queryRunner.query(`
@@ -236,7 +257,9 @@ describe("Advanced DML Operations Tests", () => {
         WHERE age IS NULL
       `);
 
-      const result = await queryRunner.query("SELECT age FROM users WHERE name = 'Null Age'");
+      const result = await queryRunner.query(
+        "SELECT age FROM users WHERE name = 'Null Age'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].age).toBe(10); // NULL coalesced to 0, then + 10
     });
@@ -250,7 +273,9 @@ describe("Advanced DML Operations Tests", () => {
         WHERE name = 'Jane Doe'
       `);
 
-      const result = await queryRunner.query("SELECT name, age FROM users WHERE name = 'JANE DOE'");
+      const result = await queryRunner.query(
+        "SELECT name, age FROM users WHERE name = 'JANE DOE'",
+      );
       expect(result.length).toBe(1);
       expect(result[0].age).toBe(50); // 25 * 2
       expect(result[0].name).toBe("JANE DOE");
@@ -268,11 +293,13 @@ describe("Advanced DML Operations Tests", () => {
       for (const [name, email, active, age] of users) {
         await queryRunner.query(
           "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-          [name, email, active, age]
+          [name, email, active, age],
         );
       }
 
-      const count = await queryRunner.query("SELECT COUNT(*) as count FROM users");
+      const count = await queryRunner.query(
+        "SELECT COUNT(*) as count FROM users",
+      );
       expect(count[0].count).toBe(100);
     });
 
@@ -282,7 +309,7 @@ describe("Advanced DML Operations Tests", () => {
         for (let i = 0; i < 50; i++) {
           await queryRunner.query(
             "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-            [`Bulk User ${i}`, `bulk${i}@example.com`, 1, 20 + i]
+            [`Bulk User ${i}`, `bulk${i}@example.com`, 1, 20 + i],
           );
         }
         await queryRunner.commitTransaction();
@@ -291,7 +318,9 @@ describe("Advanced DML Operations Tests", () => {
         throw error;
       }
 
-      const count = await queryRunner.query("SELECT COUNT(*) as count FROM users WHERE name LIKE 'Bulk User%'");
+      const count = await queryRunner.query(
+        "SELECT COUNT(*) as count FROM users WHERE name LIKE 'Bulk User%'",
+      );
       expect(count[0].count).toBe(50);
     });
   });
@@ -302,7 +331,7 @@ describe("Advanced DML Operations Tests", () => {
       for (let i = 0; i < 10; i++) {
         await queryRunner.query(
           "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-          [`User ${i}`, `user${i}@example.com`, 1, 20 + i]
+          [`User ${i}`, `user${i}@example.com`, 1, 20 + i],
         );
       }
     });
@@ -310,13 +339,15 @@ describe("Advanced DML Operations Tests", () => {
     it("should update multiple rows with different values", async () => {
       // Update each user's age
       for (let i = 0; i < 10; i++) {
-        await queryRunner.query(
-          "UPDATE users SET age = ? WHERE email = ?",
-          [30 + i, `user${i}@example.com`]
-        );
+        await queryRunner.query("UPDATE users SET age = ? WHERE email = ?", [
+          30 + i,
+          `user${i}@example.com`,
+        ]);
       }
 
-      const result = await queryRunner.query("SELECT age FROM users WHERE email = 'user5@example.com'");
+      const result = await queryRunner.query(
+        "SELECT age FROM users WHERE email = 'user5@example.com'",
+      );
       expect(result[0].age).toBe(35);
     });
 
@@ -330,7 +361,9 @@ describe("Advanced DML Operations Tests", () => {
         END
       `);
 
-      const result = await queryRunner.query("SELECT age FROM users ORDER BY age");
+      const result = await queryRunner.query(
+        "SELECT age FROM users ORDER BY age",
+      );
       expect(result.length).toBe(10);
       // All ages should be >= 25 after update
       result.forEach((row: any) => {
@@ -339,4 +372,3 @@ describe("Advanced DML Operations Tests", () => {
     });
   });
 });
-

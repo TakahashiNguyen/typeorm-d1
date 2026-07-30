@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Tag, Profile } from "../fixtures/entities";
@@ -181,10 +188,12 @@ describe("Relations Tests", () => {
     it("should create entities with ManyToMany relation", async () => {
       const post = await postRepository.save({
         title: "Test Post",
-        authorId: (await userRepository.save({
-          name: "John Doe",
-          email: "john@example.com",
-        })).id,
+        authorId: (
+          await userRepository.save({
+            name: "John Doe",
+            email: "john@example.com",
+          })
+        ).id,
       });
 
       const tag = await tagRepository.save({
@@ -199,9 +208,11 @@ describe("Relations Tests", () => {
       // Use the existing dataSource instead of creating a new one
       // The join table should already be created during beforeAll
       const db = (dataSource as any).driver.databaseConnection;
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='post_tags'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='post_tags'",
+        )
+        .all();
 
       expect(result.results).toBeDefined();
       expect(result.results?.length).toBe(1);
@@ -210,10 +221,12 @@ describe("Relations Tests", () => {
     it("should add relations", async () => {
       const post = await postRepository.save({
         title: "Test Post",
-        authorId: (await userRepository.save({
-          name: "John Doe",
-          email: "john@example.com",
-        })).id,
+        authorId: (
+          await userRepository.save({
+            name: "John Doe",
+            email: "john@example.com",
+          })
+        ).id,
       });
 
       const tag1 = await tagRepository.save({ name: "Technology" });
@@ -234,10 +247,12 @@ describe("Relations Tests", () => {
     it("should remove relations", async () => {
       const post = await postRepository.save({
         title: "Test Post",
-        authorId: (await userRepository.save({
-          name: "John Doe",
-          email: "john@example.com",
-        })).id,
+        authorId: (
+          await userRepository.save({
+            name: "John Doe",
+            email: "john@example.com",
+          })
+        ).id,
       });
 
       const tag = await tagRepository.save({ name: "Technology" });
@@ -260,10 +275,12 @@ describe("Relations Tests", () => {
     it("should load ManyToMany relations", async () => {
       const post = await postRepository.save({
         title: "Test Post",
-        authorId: (await userRepository.save({
-          name: "John Doe",
-          email: "john@example.com",
-        })).id,
+        authorId: (
+          await userRepository.save({
+            name: "John Doe",
+            email: "john@example.com",
+          })
+        ).id,
       });
 
       const tag = await tagRepository.save({ name: "Technology" });
@@ -284,10 +301,12 @@ describe("Relations Tests", () => {
     it("should query with ManyToMany join", async () => {
       const post = await postRepository.save({
         title: "Test Post",
-        authorId: (await userRepository.save({
-          name: "John Doe",
-          email: "john@example.com",
-        })).id,
+        authorId: (
+          await userRepository.save({
+            name: "John Doe",
+            email: "john@example.com",
+          })
+        ).id,
       });
 
       const tag = await tagRepository.save({ name: "Technology" });
@@ -409,10 +428,12 @@ describe("Relations Tests", () => {
     it("should test optional relations", async () => {
       const post = await postRepository.save({
         title: "Test Post",
-        authorId: (await userRepository.save({
-          name: "John Doe",
-          email: "john@example.com",
-        })).id,
+        authorId: (
+          await userRepository.save({
+            name: "John Doe",
+            email: "john@example.com",
+          })
+        ).id,
       });
 
       // Post without tags
@@ -426,4 +447,3 @@ describe("Relations Tests", () => {
     });
   });
 });
-

@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -34,7 +41,7 @@ describe("Security Tests", () => {
     it("should prevent SQL injection in email field", async () => {
       // Attempt SQL injection in email
       const maliciousEmail = "'; DROP TABLE users; --";
-      
+
       // This should be safely parameterized and not execute DROP TABLE
       const user = userRepository.create({
         name: "Test User",
@@ -47,7 +54,7 @@ describe("Security Tests", () => {
       const queryRunner = dataSource.createQueryRunner();
       try {
         const result = await queryRunner.query(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
         );
         expect(result.length).toBe(1);
         expect(result[0].name).toBe("users");
@@ -65,7 +72,7 @@ describe("Security Tests", () => {
 
     it("should prevent SQL injection in name field", async () => {
       const maliciousName = "'; DELETE FROM users WHERE '1'='1";
-      
+
       const user = userRepository.create({
         name: maliciousName,
         email: "test@example.com",
@@ -86,7 +93,7 @@ describe("Security Tests", () => {
 
     it("should safely handle special characters in queries", async () => {
       const specialChars = "test'user\"with;special--chars";
-      
+
       const user = userRepository.create({
         name: "Test User",
         email: specialChars,
@@ -103,7 +110,7 @@ describe("Security Tests", () => {
 
     it("should prevent SQL injection via query builder", async () => {
       const maliciousInput = "'; DROP TABLE users; --";
-      
+
       // Use query builder with parameterized query
       const users = await userRepository
         .createQueryBuilder("user")
@@ -114,7 +121,7 @@ describe("Security Tests", () => {
       const queryRunner = dataSource.createQueryRunner();
       try {
         const result = await queryRunner.query(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
         );
         expect(result.length).toBe(1);
       } finally {
@@ -126,16 +133,16 @@ describe("Security Tests", () => {
       const queryRunner = dataSource.createQueryRunner();
       try {
         const maliciousInput = "'; DROP TABLE users; --";
-        
+
         // Use parameterized query
         const result = await queryRunner.query(
           "SELECT * FROM users WHERE email = ?",
-          [maliciousInput]
+          [maliciousInput],
         );
 
         // Verify table still exists
         const tableCheck = await queryRunner.query(
-          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
         );
         expect(tableCheck.length).toBe(1);
       } finally {
@@ -191,4 +198,3 @@ describe("Security Tests", () => {
     });
   });
 });
-

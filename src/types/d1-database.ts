@@ -1,11 +1,6 @@
 // D1 database type definitions
 
-export type D1Bindable =
-  | string
-  | number
-  | null
-  | ArrayBuffer
-  | ArrayBufferView;
+export type D1Bindable = string | number | null | ArrayBuffer | ArrayBufferView;
 
 export type D1SessionConstraint = "first-primary" | "first-unconstrained";
 export type D1SessionBookmark = string;
@@ -23,7 +18,7 @@ export interface D1Database {
   batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
   exec(query: string): Promise<D1ExecResult>;
   withSession?(
-    constraintOrBookmark?: D1SessionBookmark | D1SessionConstraint
+    constraintOrBookmark?: D1SessionBookmark | D1SessionConstraint,
   ): D1DatabaseSession;
   dump?(): Promise<ArrayBuffer>;
 }
@@ -41,7 +36,7 @@ export interface D1DatabaseSession {
 
 /**
  * D1 prepared statement interface.
- * 
+ *
  * @public
  */
 export interface D1PreparedStatement {
@@ -54,7 +49,7 @@ export interface D1PreparedStatement {
 
 /**
  * D1 query result interface.
- * 
+ *
  * @public
  */
 export interface D1Result<T = unknown> {
@@ -74,7 +69,7 @@ export interface D1Result<T = unknown> {
 
 /**
  * D1 exec result interface.
- * 
+ *
  * @public
  */
 export interface D1ExecResult {

@@ -1,7 +1,21 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
-import { User, TestColumns, TestConstraints, Post, Tag, Profile } from "../fixtures/entities";
+import {
+  User,
+  TestColumns,
+  TestConstraints,
+  Post,
+  Tag,
+  Profile,
+} from "../fixtures/entities";
 import { getTestDatabase, cleanupDatabase, closeDatabase } from "../setup";
 
 // Helper to get all entities with relations
@@ -41,9 +55,11 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       // Verify table was created
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
+        )
+        .all();
 
       expect(result.results).toBeDefined();
       expect(result.results?.length).toBe(1);
@@ -84,25 +100,33 @@ describe("Schema Synchronization Tests", () => {
       // 1. A column constraint (UNIQUE in column definition)
       // 2. A unique index
       const tableInfo = await db.prepare("PRAGMA table_info(users)").all();
-      const emailColumn = tableInfo.results?.find((col: any) => col.name === "email");
-      
-      // Check table SQL for UNIQUE constraint
-      const tableSql = await db.prepare(
-        "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'"
-      ).all();
-      
-      const sql = tableSql.results?.[0]?.sql || "";
-      const hasUniqueInTable = sql.toUpperCase().includes("EMAIL") && sql.toUpperCase().includes("UNIQUE");
-      
-      // Also check for unique index
-      const indexes = await db.prepare(
-        "SELECT name, sql FROM sqlite_master WHERE type='index' AND tbl_name='users'"
-      ).all();
-      
-      const hasUniqueIndex = indexes.results?.some((idx: any) => 
-        idx.sql?.includes("email") && idx.sql?.includes("UNIQUE")
+      const emailColumn = tableInfo.results?.find(
+        (col: any) => col.name === "email",
       );
-      
+
+      // Check table SQL for UNIQUE constraint
+      const tableSql = await db
+        .prepare(
+          "SELECT sql FROM sqlite_master WHERE type='table' AND name='users'",
+        )
+        .all();
+
+      const sql = tableSql.results?.[0]?.sql || "";
+      const hasUniqueInTable =
+        sql.toUpperCase().includes("EMAIL") &&
+        sql.toUpperCase().includes("UNIQUE");
+
+      // Also check for unique index
+      const indexes = await db
+        .prepare(
+          "SELECT name, sql FROM sqlite_master WHERE type='index' AND tbl_name='users'",
+        )
+        .all();
+
+      const hasUniqueIndex = indexes.results?.some(
+        (idx: any) => idx.sql?.includes("email") && idx.sql?.includes("UNIQUE"),
+      );
+
       // One of these should be true
       expect(hasUniqueInTable || hasUniqueIndex).toBe(true);
     });
@@ -113,7 +137,9 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       const result = await db.prepare("PRAGMA table_info(users)").all();
-      const activeColumn = result.results?.find((col: any) => col.name === "active");
+      const activeColumn = result.results?.find(
+        (col: any) => col.name === "active",
+      );
 
       expect(activeColumn).toBeDefined();
       // SQLite stores default values - check that the column has a default
@@ -122,8 +148,13 @@ describe("Schema Synchronization Tests", () => {
       expect(activeColumn?.name).toBe("active");
       // The default value might be stored as "1", 1, "'1'", or null depending on SQLite version
       // What matters is that the column exists and the table was created
-      if (activeColumn?.dflt_value !== null && activeColumn?.dflt_value !== undefined) {
-        const defaultValue = String(activeColumn.dflt_value).replace(/'/g, "").trim();
+      if (
+        activeColumn?.dflt_value !== null &&
+        activeColumn?.dflt_value !== undefined
+      ) {
+        const defaultValue = String(activeColumn.dflt_value)
+          .replace(/'/g, "")
+          .trim();
         expect(["1", "1", "true", "TRUE"].includes(defaultValue)).toBe(true);
       } else {
         // If dflt_value is null, the default might be set via application logic
@@ -153,8 +184,12 @@ describe("Schema Synchronization Tests", () => {
 
       const result = await db.prepare("PRAGMA table_info(test_columns)").all();
       const intCol = result.results?.find((col: any) => col.name === "intCol");
-      const integerCol = result.results?.find((col: any) => col.name === "integerCol");
-      const bigintCol = result.results?.find((col: any) => col.name === "bigintCol");
+      const integerCol = result.results?.find(
+        (col: any) => col.name === "integerCol",
+      );
+      const bigintCol = result.results?.find(
+        (col: any) => col.name === "bigintCol",
+      );
 
       expect(intCol?.type).toBe("INTEGER");
       expect(integerCol?.type).toBe("INTEGER");
@@ -167,8 +202,12 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       const result = await db.prepare("PRAGMA table_info(test_columns)").all();
-      const textCol = result.results?.find((col: any) => col.name === "textCol");
-      const varcharCol = result.results?.find((col: any) => col.name === "varcharCol");
+      const textCol = result.results?.find(
+        (col: any) => col.name === "textCol",
+      );
+      const varcharCol = result.results?.find(
+        (col: any) => col.name === "varcharCol",
+      );
 
       expect(textCol?.type).toBe("TEXT");
       expect(varcharCol?.type).toBe("TEXT");
@@ -180,9 +219,15 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       const result = await db.prepare("PRAGMA table_info(test_columns)").all();
-      const realCol = result.results?.find((col: any) => col.name === "realCol");
-      const floatCol = result.results?.find((col: any) => col.name === "floatCol");
-      const doubleCol = result.results?.find((col: any) => col.name === "doubleCol");
+      const realCol = result.results?.find(
+        (col: any) => col.name === "realCol",
+      );
+      const floatCol = result.results?.find(
+        (col: any) => col.name === "floatCol",
+      );
+      const doubleCol = result.results?.find(
+        (col: any) => col.name === "doubleCol",
+      );
 
       expect(realCol?.type).toBe("REAL");
       expect(floatCol?.type).toBe("REAL");
@@ -195,7 +240,9 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       const result = await db.prepare("PRAGMA table_info(test_columns)").all();
-      const booleanCol = result.results?.find((col: any) => col.name === "booleanCol");
+      const booleanCol = result.results?.find(
+        (col: any) => col.name === "booleanCol",
+      );
 
       expect(booleanCol?.type).toBe("INTEGER");
     });
@@ -206,7 +253,9 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       const result = await db.prepare("PRAGMA table_info(test_columns)").all();
-      const blobCol = result.results?.find((col: any) => col.name === "blobCol");
+      const blobCol = result.results?.find(
+        (col: any) => col.name === "blobCol",
+      );
 
       expect(blobCol?.type).toBe("BLOB");
     });
@@ -217,9 +266,15 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       const result = await db.prepare("PRAGMA table_info(test_columns)").all();
-      const dateCol = result.results?.find((col: any) => col.name === "dateCol");
-      const datetimeCol = result.results?.find((col: any) => col.name === "datetimeCol");
-      const timestampCol = result.results?.find((col: any) => col.name === "timestampCol");
+      const dateCol = result.results?.find(
+        (col: any) => col.name === "dateCol",
+      );
+      const datetimeCol = result.results?.find(
+        (col: any) => col.name === "datetimeCol",
+      );
+      const timestampCol = result.results?.find(
+        (col: any) => col.name === "timestampCol",
+      );
 
       expect(dateCol?.type).toBe("TEXT");
       expect(datetimeCol?.type).toBe("TEXT");
@@ -234,8 +289,12 @@ describe("Schema Synchronization Tests", () => {
       dataSource = await createTestDataSource(getAllEntities());
       await dataSource.initialize();
 
-      const foreignKeys = await db.prepare("PRAGMA foreign_key_list(posts)").all();
-      const authorForeignKey = foreignKeys.results?.find((fk: any) => fk.from === "authorId");
+      const foreignKeys = await db
+        .prepare("PRAGMA foreign_key_list(posts)")
+        .all();
+      const authorForeignKey = foreignKeys.results?.find(
+        (fk: any) => fk.from === "authorId",
+      );
 
       expect(authorForeignKey).toBeDefined();
       expect(authorForeignKey?.table).toBe("users");
@@ -250,14 +309,18 @@ describe("Schema Synchronization Tests", () => {
       await dataSource.initialize();
 
       // Check if join table was created
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='post_tags'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='post_tags'",
+        )
+        .all();
 
       expect(result.results).toBeDefined();
       expect(result.results?.length).toBe(1);
 
-      const foreignKeys = await db.prepare("PRAGMA foreign_key_list(post_tags)").all();
+      const foreignKeys = await db
+        .prepare("PRAGMA foreign_key_list(post_tags)")
+        .all();
       const fromColumns = foreignKeys.results?.map((fk: any) => fk.from).sort();
       expect(fromColumns).toEqual(["postId", "tagId"]);
     });
@@ -271,9 +334,7 @@ describe("Schema Synchronization Tests", () => {
 
       const queryRunner = dataSource.createQueryRunner();
       try {
-        await expect(
-          queryRunner.dropColumn("users", "age")
-        ).rejects.toThrow();
+        await expect(queryRunner.dropColumn("users", "age")).rejects.toThrow();
       } finally {
         await queryRunner.release();
       }
@@ -295,7 +356,7 @@ describe("Schema Synchronization Tests", () => {
           const newColumn = ageColumn.clone();
           newColumn.type = "text";
           await expect(
-            queryRunner.changeColumn("users", ageColumn, newColumn)
+            queryRunner.changeColumn("users", ageColumn, newColumn),
           ).rejects.toThrow();
         }
       } finally {
@@ -308,7 +369,7 @@ describe("Schema Synchronization Tests", () => {
     it("should handle existing tables gracefully", async () => {
       // Clean up before test to ensure fresh start
       await cleanupDatabase();
-      
+
       // Create table first time
       let dataSource1 = await createTestDataSource(getAllEntities());
       await dataSource1.initialize();
@@ -318,11 +379,11 @@ describe("Schema Synchronization Tests", () => {
       // Try to create again (should not fail - TypeORM uses IF NOT EXISTS)
       // Note: TypeORM's synchronize should handle existing tables gracefully
       let dataSource2 = await createTestDataSource(getAllEntities());
-      
+
       // This should succeed even though tables already exist
       await dataSource2.initialize();
       expect(dataSource2.isInitialized).toBe(true);
-      
+
       await cleanupDataSource(dataSource2);
     });
   });

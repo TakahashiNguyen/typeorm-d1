@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -40,9 +47,7 @@ describe("QueryBuilder Tests", () => {
     });
 
     it("should select all columns", async () => {
-      const users = await userRepository
-        .createQueryBuilder("user")
-        .getMany();
+      const users = await userRepository.createQueryBuilder("user").getMany();
 
       expect(users.length).toBe(3);
       expect(users[0].id).toBeDefined();
@@ -104,7 +109,9 @@ describe("QueryBuilder Tests", () => {
     it("should filter with IN clause", async () => {
       const users = await userRepository
         .createQueryBuilder("user")
-        .where("user.email IN (:...emails)", { emails: ["john@example.com", "jane@example.com"] })
+        .where("user.email IN (:...emails)", {
+          emails: ["john@example.com", "jane@example.com"],
+        })
         .getMany();
 
       expect(users.length).toBe(2);
@@ -243,9 +250,7 @@ describe("QueryBuilder Tests", () => {
     });
 
     it("should count records", async () => {
-      const count = await userRepository
-        .createQueryBuilder("user")
-        .getCount();
+      const count = await userRepository.createQueryBuilder("user").getCount();
 
       expect(count).toBe(3);
     });
@@ -303,7 +308,9 @@ describe("QueryBuilder Tests", () => {
         .where("email = :email", { email: "john@example.com" })
         .execute();
 
-      const user = await userRepository.findOne({ where: { email: "john@example.com" } });
+      const user = await userRepository.findOne({
+        where: { email: "john@example.com" },
+      });
       expect(user?.age).toBe(40);
     });
 
@@ -315,9 +322,10 @@ describe("QueryBuilder Tests", () => {
         .where("email = :email", { email: "john@example.com" })
         .execute();
 
-      const user = await userRepository.findOne({ where: { email: "john@example.com" } });
+      const user = await userRepository.findOne({
+        where: { email: "john@example.com" },
+      });
       expect(user).toBeNull();
     });
   });
 });
-

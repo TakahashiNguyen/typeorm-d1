@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.build
+dist
+.turbo
+coverage
+.vercel
+.wrangler
+pnpm-lock.yaml
+pnpm-workspace.yaml
+.wrangler
+.github

@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -40,9 +47,7 @@ describe("Concurrency Tests", () => {
       ]);
 
       // Run multiple concurrent reads
-      const promises = Array.from({ length: 10 }, () =>
-        userRepository.find()
-      );
+      const promises = Array.from({ length: 10 }, () => userRepository.find());
 
       const results = await Promise.all(promises);
 
@@ -60,7 +65,7 @@ describe("Concurrency Tests", () => {
 
       // Run multiple concurrent findOne operations
       const promises = Array.from({ length: 20 }, () =>
-        userRepository.findOne({ where: { id: user.id } })
+        userRepository.findOne({ where: { id: user.id } }),
       );
 
       const results = await Promise.all(promises);
@@ -81,7 +86,7 @@ describe("Concurrency Tests", () => {
         userRepository.save({
           name: `User ${i}`,
           email: `user${i}@example.com`,
-        })
+        }),
       );
 
       const results = await Promise.all(promises);
@@ -108,7 +113,7 @@ describe("Concurrency Tests", () => {
       const promises = Array.from({ length: 5 }, (_, i) =>
         userRepository.update(user.id, {
           name: `Updated Name ${i}`,
-        })
+        }),
       );
 
       await Promise.all(promises);
@@ -143,7 +148,7 @@ describe("Concurrency Tests", () => {
         try {
           await queryRunner.query(
             "UPDATE users SET age = age + 1 WHERE id = ?",
-            [user.id]
+            [user.id],
           );
         } finally {
           await queryRunner.release();
@@ -165,11 +170,15 @@ describe("Concurrency Tests", () => {
       const email = "unique-concurrent@example.com";
 
       // Try to create multiple users with the same email concurrently
-      const promises = Array.from({ length: 5 }, () =>
-        userRepository.save({
-          name: "Test User",
-          email: email,
-        }).catch((error: any) => error) // Catch errors to see which ones fail
+      const promises = Array.from(
+        { length: 5 },
+        () =>
+          userRepository
+            .save({
+              name: "Test User",
+              email: email,
+            })
+            .catch((error: any) => error), // Catch errors to see which ones fail
       );
 
       const results = await Promise.all(promises);
@@ -228,4 +237,3 @@ describe("Concurrency Tests", () => {
     });
   });
 });
-

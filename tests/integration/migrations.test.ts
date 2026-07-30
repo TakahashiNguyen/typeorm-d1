@@ -51,12 +51,16 @@ describe("Migration Tests", () => {
       await dataSource.initialize();
       const migrations = await dataSource.runMigrations();
 
-      const table = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='migration_smoke'"
-      ).all();
-      const migrationTable = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'"
-      ).all();
+      const table = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='migration_smoke'",
+        )
+        .all();
+      const migrationTable = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'",
+        )
+        .all();
 
       expect(migrations).toHaveLength(1);
       expect(table.results).toHaveLength(1);
@@ -99,9 +103,11 @@ describe("Migration Tests", () => {
       await dataSource.runMigrations();
       await dataSource.undoLastMigration();
 
-      const table = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='migration_smoke'"
-      ).all();
+      const table = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='migration_smoke'",
+        )
+        .all();
 
       expect(table.results).toHaveLength(0);
       await dataSource.destroy();
@@ -112,7 +118,7 @@ describe("Migration Tests", () => {
     it("should handle running synchronize twice without errors", async () => {
       // Clean up first to ensure fresh start
       await cleanupDatabase();
-      
+
       // First synchronization
       let dataSource1 = createD1DataSource({
         database: db,
@@ -153,9 +159,11 @@ describe("Migration Tests", () => {
       await dataSource.initialize();
 
       // Verify table was created
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
+        )
+        .all();
 
       expect(result.results).toBeDefined();
       expect(result.results?.length).toBe(1);
@@ -166,7 +174,7 @@ describe("Migration Tests", () => {
     it("should handle schema changes gracefully", async () => {
       // Clean up first
       await cleanupDatabase();
-      
+
       // This test documents that schema changes require migrations
       // Synchronize can add columns but not remove them
       const dataSource = createD1DataSource({
@@ -179,9 +187,11 @@ describe("Migration Tests", () => {
       await dataSource.initialize();
 
       // Verify table exists
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
+        )
+        .all();
 
       expect(result.results?.length).toBe(1);
 
@@ -209,9 +219,11 @@ describe("Migration Tests", () => {
       }
 
       // Verify table still exists and is consistent
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
+        )
+        .all();
 
       expect(result.results?.length).toBe(1);
     });

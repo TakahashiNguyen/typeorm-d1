@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { DataSource, View } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -140,7 +148,9 @@ describe("Edge Cases and Uncovered Paths Tests", () => {
       await queryRunner.addColumnToTable("test_add_column_to_table", column);
 
       // Verify column was added
-      const result = await db.prepare("PRAGMA table_info(test_add_column_to_table)").all();
+      const result = await db
+        .prepare("PRAGMA table_info(test_add_column_to_table)")
+        .all();
       const newCol = result.results?.find((col: any) => col.name === "new_col");
       expect(newCol).toBeDefined();
     });

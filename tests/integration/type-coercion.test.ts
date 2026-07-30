@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -43,7 +50,7 @@ describe("Type Coercion Tests", () => {
       // Store string in INTEGER column
       await queryRunner.query(
         "INSERT INTO test_type_flex (int_col, text_col) VALUES (?, ?)",
-        ["123", "test"]
+        ["123", "test"],
       );
 
       const result = await queryRunner.query("SELECT * FROM test_type_flex");
@@ -65,7 +72,7 @@ describe("Type Coercion Tests", () => {
       // Store number in TEXT column
       await queryRunner.query(
         "INSERT INTO test_type_flex (text_col) VALUES (?)",
-        [123]
+        [123],
       );
 
       const result = await queryRunner.query("SELECT * FROM test_type_flex");
@@ -87,7 +94,7 @@ describe("Type Coercion Tests", () => {
       // D1 doesn't support boolean directly, convert to 1/0
       await queryRunner.query(
         "INSERT INTO test_type_flex (int_col) VALUES (?)",
-        [1] // Use 1 instead of true
+        [1], // Use 1 instead of true
       );
 
       const result = await queryRunner.query("SELECT * FROM test_type_flex");
@@ -102,11 +109,11 @@ describe("Type Coercion Tests", () => {
     beforeEach(async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 1", "user1@example.com", 1, 30]
+        ["User 1", "user1@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 2", "user2@example.com", 1, 25]
+        ["User 2", "user2@example.com", 1, 25],
       );
     });
 
@@ -114,7 +121,7 @@ describe("Type Coercion Tests", () => {
       // Compare INTEGER column with string
       const result = await queryRunner.query(
         "SELECT * FROM users WHERE age = ?",
-        ["30"]
+        ["30"],
       );
 
       expect(result.length).toBe(1);
@@ -125,7 +132,7 @@ describe("Type Coercion Tests", () => {
       // Compare TEXT column with number
       const result = await queryRunner.query(
         "SELECT * FROM users WHERE email = ?",
-        [123] // Wrong type, but SQLite may handle it
+        [123], // Wrong type, but SQLite may handle it
       );
 
       // Should not match (email is text, 123 won't match)
@@ -136,7 +143,7 @@ describe("Type Coercion Tests", () => {
       // Compare with string representation of number
       const result = await queryRunner.query(
         "SELECT * FROM users WHERE age > ?",
-        ["25"]
+        ["25"],
       );
 
       expect(result.length).toBeGreaterThan(0);
@@ -150,32 +157,35 @@ describe("Type Coercion Tests", () => {
     beforeEach(async () => {
       const userId1 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author 1", "author1@example.com", 1]
+        ["Author 1", "author1@example.com", 1],
       );
       const userId2 = await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["Author 2", "author2@example.com", 1]
+        ["Author 2", "author2@example.com", 1],
       );
 
       // Posts table only has createdAt, not updatedAt
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 1", "Content", userId1]
+        ["Post 1", "Content", userId1],
       );
       await queryRunner.query(
         "INSERT INTO posts (title, content, authorId, createdAt) VALUES (?, ?, ?, datetime('now'))",
-        ["Post 2", "Content", userId2]
+        ["Post 2", "Content", userId2],
       );
     });
 
     it("should handle type coercion in JOIN conditions", async () => {
       // Join with numeric comparison (no need for CAST in this case)
-      const result = await queryRunner.query(`
+      const result = await queryRunner.query(
+        `
         SELECT u.name, p.title
         FROM users u
         INNER JOIN posts p ON p.authorId = u.id
         WHERE u.id = ?
-      `, [1]);
+      `,
+        [1],
+      );
 
       // Should handle the join correctly
       expect(Array.isArray(result)).toBe(true);
@@ -186,15 +196,15 @@ describe("Type Coercion Tests", () => {
     beforeEach(async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 1", "user1@example.com", 1, 30]
+        ["User 1", "user1@example.com", 1, 30],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 2", "user2@example.com", 1, 25]
+        ["User 2", "user2@example.com", 1, 25],
       );
       await queryRunner.query(
         "INSERT INTO users (name, email, active, age, createdAt, updatedAt) VALUES (?, ?, ?, ?, datetime('now'), datetime('now'))",
-        ["User 3", "user3@example.com", 1, 35]
+        ["User 3", "user3@example.com", 1, 35],
       );
     });
 
@@ -245,7 +255,7 @@ describe("Type Coercion Tests", () => {
 
       await queryRunner.query(
         "INSERT INTO test_numeric (num_col, text_col) VALUES (?, ?)",
-        ["123", "456"]
+        ["123", "456"],
       );
 
       const result = await queryRunner.query(`
@@ -277,17 +287,17 @@ describe("Type Coercion Tests", () => {
 
       await queryRunner.query(
         "INSERT INTO test_empty (name, description) VALUES (?, ?)",
-        ["", null]
+        ["", null],
       );
 
       const emptyResult = await queryRunner.query(
         "SELECT * FROM test_empty WHERE name = ?",
-        [""]
+        [""],
       );
       expect(emptyResult.length).toBe(1);
 
       const nullResult = await queryRunner.query(
-        "SELECT * FROM test_empty WHERE description IS NULL"
+        "SELECT * FROM test_empty WHERE description IS NULL",
       );
       expect(nullResult.length).toBe(1);
 
@@ -297,12 +307,12 @@ describe("Type Coercion Tests", () => {
     it("should handle empty string in comparisons", async () => {
       await queryRunner.query(
         "INSERT INTO users (name, email, active, createdAt, updatedAt) VALUES (?, ?, ?, datetime('now'), datetime('now'))",
-        ["", "empty@example.com", 1]
+        ["", "empty@example.com", 1],
       );
 
       const result = await queryRunner.query(
         "SELECT * FROM users WHERE name = ?",
-        [""]
+        [""],
       );
 
       expect(result.length).toBe(1);
@@ -329,7 +339,7 @@ describe("Type Coercion Tests", () => {
       for (const format of formats) {
         await queryRunner.query(
           "INSERT INTO test_dates (date_col, datetime_col) VALUES (?, ?)",
-          [format, format]
+          [format, format],
         );
       }
 
@@ -349,11 +359,11 @@ describe("Type Coercion Tests", () => {
 
       await queryRunner.query(
         "INSERT INTO test_date_compare (date_col) VALUES (?)",
-        ["2024-01-01"]
+        ["2024-01-01"],
       );
       await queryRunner.query(
         "INSERT INTO test_date_compare (date_col) VALUES (?)",
-        ["2024-12-31"]
+        ["2024-12-31"],
       );
 
       const result = await queryRunner.query(`
@@ -369,4 +379,3 @@ describe("Type Coercion Tests", () => {
     });
   });
 });
-

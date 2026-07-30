@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -39,7 +46,7 @@ describe("PRAGMA Statements Tests", () => {
   describe("PRAGMA foreign_keys", () => {
     it("should check foreign keys status", async () => {
       const result = await queryRunner.query("PRAGMA foreign_keys");
-      
+
       expect(result.length).toBe(1);
       // Should be 1 (enabled) since we enable it in afterConnect
       expect(result[0].foreign_keys).toBe(1);
@@ -64,11 +71,15 @@ describe("PRAGMA Statements Tests", () => {
       await queryRunner.query("INSERT INTO test_fk_parent (id) VALUES (1)");
 
       // Try to insert child with valid parent
-      await queryRunner.query("INSERT INTO test_fk_child (id, parent_id) VALUES (1, 1)");
+      await queryRunner.query(
+        "INSERT INTO test_fk_child (id, parent_id) VALUES (1, 1)",
+      );
 
       // Try to insert child with invalid parent (should fail if foreign keys enabled)
       try {
-        await queryRunner.query("INSERT INTO test_fk_child (id, parent_id) VALUES (2, 999)");
+        await queryRunner.query(
+          "INSERT INTO test_fk_child (id, parent_id) VALUES (2, 999)",
+        );
         // If we get here, foreign keys might not be enforced
       } catch (error) {
         // Expected: foreign key violation
@@ -125,8 +136,10 @@ describe("PRAGMA Statements Tests", () => {
     });
 
     it("should handle table_info for non-existent table", async () => {
-      const result = await queryRunner.query("PRAGMA table_info(non_existent_table)");
-      
+      const result = await queryRunner.query(
+        "PRAGMA table_info(non_existent_table)",
+      );
+
       // Should return empty array, not throw error
       expect(Array.isArray(result)).toBe(true);
       expect(result.length).toBe(0);
@@ -167,7 +180,9 @@ describe("PRAGMA Statements Tests", () => {
     it("should identify unique indexes", async () => {
       const result = await queryRunner.query("PRAGMA index_list(test_indexes)");
 
-      const uniqueIndex = result.find((idx: any) => idx.name?.includes("email") || idx.unique === 1);
+      const uniqueIndex = result.find(
+        (idx: any) => idx.name?.includes("email") || idx.unique === 1,
+      );
       if (uniqueIndex) {
         expect(uniqueIndex.unique).toBe(1);
       }
@@ -223,7 +238,7 @@ describe("PRAGMA Statements Tests", () => {
     it("should check database integrity (if supported)", async () => {
       try {
         const result = await queryRunner.query("PRAGMA integrity_check");
-        
+
         // Should return 'ok' if integrity is good
         expect(Array.isArray(result)).toBe(true);
         if (result.length > 0) {
@@ -238,7 +253,7 @@ describe("PRAGMA Statements Tests", () => {
     it("should check quick integrity (if supported)", async () => {
       try {
         const result = await queryRunner.query("PRAGMA quick_check");
-        
+
         expect(Array.isArray(result)).toBe(true);
       } catch (error) {
         // If not supported, that's okay
@@ -251,7 +266,7 @@ describe("PRAGMA Statements Tests", () => {
     it("should get user version (if supported)", async () => {
       try {
         const result = await queryRunner.query("PRAGMA user_version");
-        
+
         expect(result.length).toBe(1);
         expect(result[0]).toHaveProperty("user_version");
         expect(typeof result[0].user_version).toBe("number");
@@ -265,7 +280,7 @@ describe("PRAGMA Statements Tests", () => {
       try {
         await queryRunner.query("PRAGMA user_version = 5");
         const result = await queryRunner.query("PRAGMA user_version");
-        
+
         expect(result[0].user_version).toBe(5);
       } catch (error) {
         // If not supported, that's okay
@@ -319,7 +334,7 @@ describe("PRAGMA Statements Tests", () => {
     it("should list all tables (if supported)", async () => {
       try {
         const result = await queryRunner.query("PRAGMA table_list");
-        
+
         expect(Array.isArray(result)).toBe(true);
         if (result.length > 0) {
           expect(result[0]).toHaveProperty("schema");
@@ -333,4 +348,3 @@ describe("PRAGMA Statements Tests", () => {
     });
   });
 });
-

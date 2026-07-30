@@ -13,23 +13,21 @@ import { D1Guards } from "../../utils/guards";
 
 /**
  * D1Driver connects TypeORM to Cloudflare D1 database.
- * 
+ *
  * Extends AbstractSqliteDriver since D1 is SQLite-based and shares many
- * characteristics with SQLite. This driver handles connection management,
- * query runner creation, and D1-specific configurations.
- * 
+ * characteristics with SQLite. This driver handles connection management, query
+ * runner creation, and D1-specific configurations.
+ *
  * @public
  */
 export class D1Driver extends AbstractSqliteDriver {
   /**
-   * D1 database instance provided via driver options.
-   * Set during createDatabaseConnection().
+   * D1 database instance provided via driver options. Set during
+   * createDatabaseConnection().
    */
   declare databaseConnection: D1Database;
 
-  /**
-   * Connection options extended with D1-specific driver configuration.
-   */
+  /** Connection options extended with D1-specific driver configuration. */
   declare options: DataSourceOptions & {
     driver?: {
       database: D1Database;
@@ -38,15 +36,15 @@ export class D1Driver extends AbstractSqliteDriver {
 
   /**
    * Creates a new D1Driver instance.
-   * 
+   *
    * @param connection - TypeORM DataSource instance
    * @throws {D1ValidationError} If database instance is missing or invalid
    */
   constructor(connection: DataSource) {
     super(connection);
-    this.connection = connection;
+    this.dataSource = connection;
     this.options = connection.options;
-    
+
     const driverOptions = this.options.driver;
     if (!driverOptions?.database) {
       throw new D1ValidationError(
@@ -54,57 +52,57 @@ export class D1Driver extends AbstractSqliteDriver {
         {
           hint: "Use { driver: { database: env.DB } }",
           received: typeof driverOptions,
-        }
+        },
       );
     }
 
     if (!D1Guards.isD1Database(driverOptions.database)) {
-      throw new D1ValidationError(
-        "Invalid D1 database instance",
-        {
-          hint: "Expected D1Database with prepare(), batch(), and exec() methods",
-          received: typeof driverOptions.database,
-        }
-      );
+      throw new D1ValidationError("Invalid D1 database instance", {
+        hint: "Expected D1Database with prepare(), batch(), and exec() methods",
+        received: typeof driverOptions.database,
+      });
     }
-    
+
     // Extend supported data types to include timestamp (mapped to TEXT in SQLite)
-    if (this.supportedDataTypes && !this.supportedDataTypes.includes("timestamp")) {
+    if (
+      this.supportedDataTypes &&
+      !this.supportedDataTypes.includes("timestamp")
+    ) {
       this.supportedDataTypes.push("timestamp");
     }
   }
 
   /**
    * Creates connection with the database.
-   * 
-   * For D1, this validates and returns the D1Database instance provided
-   * in driver options. There's no actual connection establishment needed
-   * since D1 is serverless.
-   * 
+   *
+   * For D1, this validates and returns the D1Database instance provided in
+   * driver options. There's no actual connection establishment needed since D1
+   * is serverless.
+   *
    * @returns Promise resolving to D1Database instance
    * @throws {D1ValidationError} If database instance is invalid
    */
   protected async createDatabaseConnection(): Promise<D1Database> {
     const driverOptions = this.options.driver;
     const database = driverOptions?.database;
-    
+
     if (!D1Guards.isD1Database(database)) {
       throw new D1ValidationError(
         "Invalid D1 database instance. Expected D1Database with prepare(), batch(), and exec() methods.",
         {
           received: typeof database,
-        }
+        },
       );
     }
-    
+
     return database;
   }
 
   /**
    * Closes connection with database.
-   * 
-   * For D1, there's no persistent connection to close, so this is a no-op.
-   * We clean up internal state for consistency.
+   *
+   * For D1, there's no persistent connection to close, so this is a no-op. We
+   * clean up internal state for consistency.
    */
   async disconnect(): Promise<void> {
     this.queryRunner = undefined;
@@ -113,11 +111,11 @@ export class D1Driver extends AbstractSqliteDriver {
 
   /**
    * Creates a query runner used to execute database queries.
-   * 
-   * For D1, we create a new query runner for each request to avoid
-   * transaction state conflicts in concurrent scenarios. This is safe
-   * since there's no connection pooling overhead.
-   * 
+   *
+   * For D1, we create a new query runner for each request to avoid transaction
+   * state conflicts in concurrent scenarios. This is safe since there's no
+   * connection pooling overhead.
+   *
    * @param mode - Replication mode (not used for D1)
    * @returns New D1QueryRunner instance
    */
@@ -126,10 +124,11 @@ export class D1Driver extends AbstractSqliteDriver {
   }
 
   /**
-   * Makes any action after connection (e.g. create extensions in Postgres driver).
-   * 
-   * For D1, we enable foreign key constraints which are disabled by default
-   * in SQLite. This is important for enforcing referential integrity.
+   * Makes any action after connection (e.g. create extensions in Postgres
+   * driver).
+   *
+   * For D1, we enable foreign key constraints which are disabled by default in
+   * SQLite. This is important for enforcing referential integrity.
    */
   async afterConnect(): Promise<void> {
     const queryRunner = this.createQueryRunner("master");
@@ -142,7 +141,7 @@ export class D1Driver extends AbstractSqliteDriver {
 
   /**
    * Normalizes type definition for D1/SQLite.
-   * 
+   *
    * @param column - Column metadata
    * @returns Normalized SQLite type string
    */
@@ -159,16 +158,20 @@ export class D1Driver extends AbstractSqliteDriver {
 
   /**
    * Builds table name with schema and database prefix.
-   * 
-   * For SQLite/D1, we don't support multiple databases or schemas,
-   * so this returns the table name as-is.
-   * 
+   *
+   * For SQLite/D1, we don't support multiple databases or schemas, so this
+   * returns the table name as-is.
+   *
    * @param tableName - Table name
    * @param _schema - Schema name (ignored for D1)
    * @param _database - Database name (ignored for D1)
    * @returns Table name without modifications
    */
-  buildTableName(tableName: string, _schema?: string, _database?: string): string {
+  buildTableName(
+    tableName: string,
+    _schema?: string,
+    _database?: string,
+  ): string {
     return tableName;
   }
 

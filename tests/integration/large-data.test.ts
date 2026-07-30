@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -97,7 +104,7 @@ describe("Large Data Tests", () => {
         userRepository.create({
           name: `User ${i}`,
           email: `user${i}@example.com`,
-        })
+        }),
       );
 
       const savedUsers = await userRepository.save(users);
@@ -114,7 +121,7 @@ describe("Large Data Tests", () => {
         userRepository.create({
           name: largeText + ` User ${i}`,
           email: `bulk${i}@example.com`,
-        })
+        }),
       );
 
       const savedUsers = await userRepository.save(users);
@@ -127,7 +134,7 @@ describe("Large Data Tests", () => {
         userRepository.create({
           name: `User ${i}`,
           email: `query${i}@example.com`,
-        })
+        }),
       );
 
       await userRepository.save(users);

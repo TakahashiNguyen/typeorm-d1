@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -107,7 +115,9 @@ describe("Error Code Path Coverage Tests", () => {
 
     it("should map 'no such table' error (line 177-178)", async () => {
       try {
-        await queryRunner.query("SELECT * FROM definitely_does_not_exist_table");
+        await queryRunner.query(
+          "SELECT * FROM definitely_does_not_exist_table",
+        );
         expect(true).toBe(false);
       } catch (error: any) {
         expect(error.code).toBe("SQLITE_ERROR");
@@ -140,7 +150,9 @@ describe("Error Code Path Coverage Tests", () => {
     it("should handle generic D1_ERROR (line 168)", async () => {
       // Try an invalid SQL that doesn't match specific patterns
       try {
-        await queryRunner.query("INVALID SQL SYNTAX THAT DOESN'T MATCH PATTERNS");
+        await queryRunner.query(
+          "INVALID SQL SYNTAX THAT DOESN'T MATCH PATTERNS",
+        );
         expect(true).toBe(false);
       } catch (error: any) {
         // Should have a code, even if generic
@@ -202,4 +214,3 @@ describe("Error Code Path Coverage Tests", () => {
     });
   });
 });
-

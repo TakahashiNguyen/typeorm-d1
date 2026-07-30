@@ -1,11 +1,11 @@
 // D1 driver options type definitions
 
-import { SqliteConnectionOptions } from "typeorm/driver/sqlite/SqliteConnectionOptions.js";
+import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions";
 import { D1Bindable, D1Database } from "./d1-database";
 
 /**
  * D1 driver connection options.
- * 
+ *
  * @public
  */
 export interface D1ConnectionOptions {
@@ -16,11 +16,15 @@ export interface D1ConnectionOptions {
  * TypeORM DataSource options accepted by createD1DataSource().
  *
  * D1 uses a SQLite-compatible TypeORM driver internally, so callers provide a
- * D1 binding directly instead of TypeORM's regular database path/driver fields.
+ * D1 binding directly instead of TypeORM's regular database path/driver
+ * fields.
  *
  * @public
  */
-export type D1DataSourceOptions = Omit<SqliteConnectionOptions, "type" | "database" | "driver"> & {
+export type D1DataSourceOptions = Omit<
+  BetterSqlite3DataSourceOptions,
+  "type" | "database" | "driver"
+> & {
   database: D1Database;
 };
 
@@ -36,7 +40,7 @@ export interface D1BatchStatement {
 
 /**
  * TypeORM-compatible error codes for D1 errors.
- * 
+ *
  * @public
  */
 export type D1ErrorCode =
@@ -48,7 +52,7 @@ export type D1ErrorCode =
 
 /**
  * Extended Error interface with D1-specific error information.
- * 
+ *
  * @public
  */
 export interface D1Error extends Error {
@@ -59,7 +63,7 @@ export interface D1Error extends Error {
 
 /**
  * Context information for D1 errors.
- * 
+ *
  * @public
  */
 export interface D1ErrorContext {
