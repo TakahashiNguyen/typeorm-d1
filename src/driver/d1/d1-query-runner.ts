@@ -24,6 +24,7 @@ import {
   D1ValidationError,
 } from "../../errors";
 import { D1Guards } from "../../utils/guards";
+import { Query } from "typeorm/driver/Query";
 
 /**
  * D1QueryRunner executes queries against Cloudflare D1 database.
@@ -576,8 +577,8 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
    * @param ifNotExist - Whether to use IF NOT EXISTS clause
    */
   async createTable(table: Table, ifNotExist?: boolean): Promise<void> {
-    const sql = this.buildCreateTableSql(table, ifNotExist);
-    await this.query(sql);
+    const query = this.createTableSql(table, ifNotExist);
+    await this.query(query.query, query.parameters);
   }
 
   /**
@@ -652,87 +653,13 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     tableOrName: Table | string,
     columnOrName: TableColumn | string,
   ): Promise<void> {
-    const table =
-      typeof tableOrName === "string"
-        ? await this.getTable(tableOrName)
-        : tableOrName;
-
-    if (!table) {
-      throw new Error(`Table "${tableOrName}" was not found.`);
-    }
-
-    const columnName =
-      typeof columnOrName === "string" ? columnOrName : columnOrName.name;
-
-    const column = table.findColumnByName(columnName);
-    if (!column) {
-      throw new Error(
-        `Column "${columnName}" was not found in table "${table.name}".`,
-      );
-    }
-
-    const clonedTable = table.clone();
-    const columnToRemove = clonedTable.columns.find(
-      (c) => c.name === columnName,
-    );
-    if (columnToRemove) {
-      clonedTable.columns.splice(
-        clonedTable.columns.indexOf(columnToRemove),
-        1,
-      );
-    }
-
-    await this.changeTable(table, clonedTable);
+    throw new D1ValidationError("SQLite/D1 doesn't support DROP COLUMN", {
+      hint: "Use a migration to recreate the table",
+      operation: "dropColumn",
+    });
   }
 
-  async changeTable(
-    oldTableOrName: Table | string,
-    newTable: Table,
-  ): Promise<void> {
-    const oldTable =
-      typeof oldTableOrName === "string"
-        ? await this.getTable(oldTableOrName)
-        : oldTableOrName;
-
-    if (!oldTable) {
-      throw new Error(`Table "${oldTableOrName}" was not found.`);
-    }
-
-    const tempTableName = `temporary_${oldTable.name}`;
-
-    const tempTable = newTable.clone();
-    tempTable.name = tempTableName;
-
-    try {
-      await this.createTable(tempTable, true);
-
-      const oldColumnNames = oldTable.columns.map((c) => this.escape(c.name));
-      const newColumnNames = newTable.columns.map((c) => this.escape(c.name));
-
-      const commonColumnNames = oldColumnNames.filter((name) =>
-        newColumnNames.includes(name),
-      );
-
-      if (commonColumnNames.length > 0) {
-        const columnsString = commonColumnNames.join(", ");
-        const oldTableNameEscaped = this.escape(oldTable.name);
-        const tempTableNameEscaped = this.escape(tempTableName);
-
-        await this.query(
-          `INSERT INTO ${tempTableNameEscaped} (${columnsString}) SELECT ${columnsString} FROM ${oldTableNameEscaped}`,
-        );
-      }
-
-      await this.dropTable(oldTable, true);
-
-      await this.query(
-        `ALTER TABLE ${this.escape(tempTableName)} RENAME TO ${this.escape(oldTable.name)}`,
-      );
-    } catch (error) {
-      console.error("Table recreation failed:", error);
-      throw error;
-    }
-  }
+ 
 
   /**
    * Changes a column in a table.
@@ -982,9 +909,9 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
    *
    * @param table - Table metadata
    * @param ifNotExist - Whether to use IF NOT EXISTS clause
-   * @returns SQL statement
+   * @returns Query object
    */
-  protected buildCreateTableSql(table: Table, ifNotExist?: boolean): string {
+  protected createTableSql(table: Table, ifNotExist?: boolean): Query {
     const primaryKeys = table.columns.filter((col) => col.isPrimary);
     const isCompositePrimary = primaryKeys.length > 1;
 
@@ -1004,7 +931,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
     sql += ")";
 
-    return sql;
+    return new Query(sql);
   }
 
   /**

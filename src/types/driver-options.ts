@@ -45,6 +45,7 @@ export interface D1BatchStatement {
  */
 export type D1ErrorCode =
   | "D1_ERROR"
+  | "SQLITE_CONSTRAINT"
   | "SQLITE_CONSTRAINT_UNIQUE"
   | "SQLITE_CONSTRAINT_NOTNULL"
   | "SQLITE_CONSTRAINT_FOREIGNKEY"
