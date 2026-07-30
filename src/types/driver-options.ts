@@ -1,6 +1,6 @@
 // D1 driver options type definitions
 
-import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions";
+import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions.js";
 import { D1Bindable, D1Database } from "./d1-database";
 
 /**

@@ -3,7 +3,7 @@
 import { DataSource, DataSourceOptions } from "typeorm";
 import { D1DataSourceOptions } from "../types";
 import { D1DriverRegistry } from "../utils/driver-registry";
-import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions";
+import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/BetterSqlite3DataSourceOptions.js";
 
 /**
  * Creates a DataSource configured for Cloudflare D1.

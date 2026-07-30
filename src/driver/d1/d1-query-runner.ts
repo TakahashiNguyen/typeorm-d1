@@ -24,7 +24,7 @@ import {
   D1ValidationError,
 } from "../../errors";
 import { D1Guards } from "../../utils/guards";
-import { Query } from "typeorm/driver/Query";
+import { Query } from "typeorm/driver/Query.js";
 
 /**
  * D1QueryRunner executes queries against Cloudflare D1 database.
