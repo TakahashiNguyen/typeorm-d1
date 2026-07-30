@@ -17,22 +17,27 @@ import { QueryRunnerAlreadyReleasedError } from "typeorm/error/QueryRunnerAlread
 import { D1ErrorHandler } from "../../utils/error-handler";
 import { QueryNormalizer } from "../../utils/query-normalizer";
 import { MetadataParser } from "../../utils/metadata-parser";
-import { D1ConnectionError, D1QueryError, D1TransactionError, D1ValidationError } from "../../errors";
+import {
+  D1ConnectionError,
+  D1QueryError,
+  D1TransactionError,
+  D1ValidationError,
+} from "../../errors";
 import { D1Guards } from "../../utils/guards";
 
 /**
  * D1QueryRunner executes queries against Cloudflare D1 database.
- * 
+ *
  * Extends AbstractSqliteQueryRunner to reuse SQLite-specific functionality
  * while implementing D1-specific query execution and transaction handling.
- * 
+ *
  * @public
  */
 export class D1QueryRunner extends AbstractSqliteQueryRunner {
   driver: D1Driver;
   connection: DataSource;
   broadcaster: Broadcaster;
-  
+
   private readonly transactionStatements: string[] = [];
   private readonly transactionBindings: unknown[][] = [];
   isTransactionActive = false;
@@ -40,7 +45,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Creates a new D1QueryRunner instance.
-   * 
+   *
    * @param driver - D1Driver instance
    */
   constructor(driver: D1Driver) {
@@ -53,36 +58,36 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Creates/uses database connection from the connection pool to perform further operations.
-   * 
+   *
    * For D1, this ensures the connection is established and returns the D1Database instance.
-   * 
+   *
    * @returns Promise resolving to D1Database instance
    * @throws {D1ConnectionError} If connection fails
    */
   async connect(): Promise<D1Driver["databaseConnection"]> {
     D1Guards.assertDriverInitialized(this.driver);
-    
+
     if (this.driver.databaseConnection) {
       return this.driver.databaseConnection;
     }
-    
+
     try {
       await this.driver.connect();
     } catch (error) {
       throw new D1ConnectionError(
         "Failed to connect to D1 database",
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
-    
+
     D1Guards.assertConnectionEstablished(this.driver.databaseConnection);
-    
+
     return this.driver.databaseConnection;
   }
 
   /**
    * Releases used database connection.
-   * 
+   *
    * For D1, there's no connection to release, but we clean up transaction state
    * to prevent state from persisting across tests or query runner reuse.
    */
@@ -101,15 +106,27 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Executes a given SQL query.
-   * 
+   *
    * @param query - SQL query string
    * @param parameters - Optional query parameters
    * @param useStructuredResult - Whether to return structured result format
    * @returns Query result (array or QueryResult object)
    */
-  async query(query: string, parameters?: unknown[], useStructuredResult?: false): Promise<unknown>;
-  async query(query: string, parameters: unknown[] | undefined, useStructuredResult: true): Promise<QueryResult>;
-  async query(query: string, parameters?: unknown[], useStructuredResult?: boolean): Promise<QueryResult | unknown> {
+  async query(
+    query: string,
+    parameters?: unknown[],
+    useStructuredResult?: false,
+  ): Promise<unknown>;
+  async query(
+    query: string,
+    parameters: unknown[] | undefined,
+    useStructuredResult: true,
+  ): Promise<QueryResult>;
+  async query(
+    query: string,
+    parameters?: unknown[],
+    useStructuredResult?: boolean,
+  ): Promise<QueryResult | unknown> {
     if (this.isReleased) {
       throw new QueryRunnerAlreadyReleasedError();
     }
@@ -123,7 +140,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     const broadcasterResult = new BroadcasterResult();
     const queryStartTime = Date.now();
     const maxQueryExecutionTime = this.driver.options.maxQueryExecutionTime;
-    
+
     // For transactions, track the query but execute immediately for results
     if (this.isTransactionActive) {
       this.transactionStatements.push(normalizedQuery);
@@ -131,7 +148,11 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     }
 
     this.connection.logger.logQuery(normalizedQuery, parameters, this);
-    await this.broadcaster.broadcast("BeforeQuery", normalizedQuery, parameters);
+    await this.broadcaster.broadcast(
+      "BeforeQuery",
+      normalizedQuery,
+      parameters,
+    );
 
     try {
       const result = await this.executeQuery(
@@ -140,11 +161,16 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
         parameters,
         useStructuredResult,
         queryType.isSelect,
-        queryType.isInsert
+        queryType.isInsert,
       );
       const queryExecutionTime = Date.now() - queryStartTime;
       if (maxQueryExecutionTime && queryExecutionTime > maxQueryExecutionTime) {
-        this.connection.logger.logQuerySlow(queryExecutionTime, normalizedQuery, parameters, this);
+        this.connection.logger.logQuerySlow(
+          queryExecutionTime,
+          normalizedQuery,
+          parameters,
+          this,
+        );
       }
       this.broadcaster.broadcastAfterQueryEvent(
         broadcasterResult,
@@ -153,14 +179,20 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
         true,
         queryExecutionTime,
         this.getRawResultForBroadcaster(result, !!useStructuredResult),
-        undefined
+        undefined,
       );
       return result;
     } catch (error: unknown) {
-      const wrappedError = error instanceof D1QueryError
-        ? error
-        : this.errorHandler.wrapD1Exception(error, normalizedQuery);
-      this.connection.logger.logQueryError(wrappedError, normalizedQuery, parameters, this);
+      const wrappedError =
+        error instanceof D1QueryError
+          ? error
+          : this.errorHandler.wrapD1Exception(error, normalizedQuery);
+      this.connection.logger.logQueryError(
+        wrappedError,
+        normalizedQuery,
+        parameters,
+        this,
+      );
       this.broadcaster.broadcastAfterQueryEvent(
         broadcasterResult,
         normalizedQuery,
@@ -168,7 +200,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
         false,
         undefined,
         undefined,
-        wrappedError
+        wrappedError,
       );
       throw wrappedError;
     } finally {
@@ -193,7 +225,9 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     const database = await this.connect();
     const preparedStatements = statements.map((statement) => {
       D1Guards.assertNonEmptyString(statement.query, "Batch statement query");
-      let prepared = database.prepare(QueryNormalizer.normalizeQuery(statement.query));
+      let prepared = database.prepare(
+        QueryNormalizer.normalizeQuery(statement.query),
+      );
       const parameters = this.normalizeParameters(statement.parameters);
       if (parameters.length > 0) {
         prepared = prepared.bind(...parameters);
@@ -206,7 +240,9 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
       results.forEach((result, index) => {
         this.errorHandler.checkD1Error(
           result,
-          QueryNormalizer.normalizeQuery(statements[index]?.query || "D1 batch statement")
+          QueryNormalizer.normalizeQuery(
+            statements[index]?.query || "D1 batch statement",
+          ),
         );
       });
       return results;
@@ -221,7 +257,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Executes a prepared query against the D1 database.
-   * 
+   *
    * @param database - The D1 database instance
    * @param query - The normalized SQL query
    * @param parameters - Query parameters
@@ -237,7 +273,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     parameters: unknown[] | undefined,
     useStructuredResult: boolean | undefined,
     isSelect: boolean,
-    isInsert: boolean
+    isInsert: boolean,
   ): Promise<QueryResult | unknown> {
     let stmt = database.prepare(query);
     if (parameters && parameters.length > 0) {
@@ -245,7 +281,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
       const normalizedParameters = this.normalizeParameters(parameters);
       stmt = stmt.bind(...normalizedParameters);
     }
-    
+
     try {
       if (isSelect) {
         const result = await stmt.all();
@@ -268,17 +304,22 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Maps D1 result to TypeORM format (for SELECT queries).
-   * 
+   *
    * @param result - The D1 result object
    * @param useStructuredResult - Whether to return structured result format
    * @returns Mapped result in TypeORM format
    * @internal
    */
-  private mapD1Result(result: D1Result, useStructuredResult?: boolean): unknown[] | {
-    raw: unknown[];
-    records: unknown[];
-    affected: number;
-  } {
+  private mapD1Result(
+    result: D1Result,
+    useStructuredResult?: boolean,
+  ):
+    | unknown[]
+    | {
+        raw: unknown[];
+        records: unknown[];
+        affected: number;
+      } {
     if (useStructuredResult) {
       return {
         raw: result.results || [],
@@ -291,7 +332,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Maps D1 run result to TypeORM format (for INSERT/UPDATE/DELETE queries).
-   * 
+   *
    * @param result - The D1 result object
    * @param useStructuredResult - Whether to return structured result format
    * @param isInsert - Whether this is an INSERT query
@@ -299,17 +340,20 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
    * @internal
    */
   private mapD1RunResult(
-    result: D1Result, 
-    useStructuredResult?: boolean, 
-    isInsert?: boolean
-  ): number | undefined | {
-    raw?: number;
-    records: unknown[];
-    affected: number;
-  } {
+    result: D1Result,
+    useStructuredResult?: boolean,
+    isInsert?: boolean,
+  ):
+    | number
+    | undefined
+    | {
+        raw?: number;
+        records: unknown[];
+        affected: number;
+      } {
     const lastRowId = result.meta?.last_row_id || 0;
     const affected = result.meta?.rows_written || result.meta?.changes || 0;
-    
+
     if (useStructuredResult) {
       return {
         raw: isInsert ? lastRowId : undefined,
@@ -323,14 +367,24 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     }
   }
 
-  private normalizeParameters(parameters: Array<unknown> | undefined): D1Bindable[] {
+  private normalizeParameters(
+    parameters: Array<unknown> | undefined,
+  ): D1Bindable[] {
     return (parameters || []).map((parameter) =>
-      parameter === undefined ? null : parameter
+      parameter === undefined ? null : parameter,
     ) as D1Bindable[];
   }
 
-  private getRawResultForBroadcaster(result: QueryResult | unknown, useStructuredResult: boolean): unknown {
-    if (useStructuredResult && result && typeof result === "object" && "raw" in result) {
+  private getRawResultForBroadcaster(
+    result: QueryResult | unknown,
+    useStructuredResult: boolean,
+  ): unknown {
+    if (
+      useStructuredResult &&
+      result &&
+      typeof result === "object" &&
+      "raw" in result
+    ) {
       return (result as QueryResult).raw;
     }
     return result;
@@ -338,10 +392,10 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Starts a new transaction.
-   * 
+   *
    * Note: D1 doesn't support true rollback - once a query is executed, it's committed.
    * This method tracks transaction state for TypeORM compatibility.
-   * 
+   *
    * @param isolationLevel - Isolation level (not used for D1)
    * @throws {D1TransactionError} If a transaction is already active
    */
@@ -351,7 +405,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
         "Cannot start transaction: a transaction is already active",
         {
           hint: "Commit or rollback the current transaction first",
-        }
+        },
       );
     }
     this.isTransactionActive = true;
@@ -362,10 +416,10 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Commits the current transaction.
-   * 
+   *
    * Note: For D1, queries are already executed individually during the transaction.
    * This method only cleans up transaction state.
-   * 
+   *
    * @throws {D1TransactionError} If no transaction is active
    */
   async commitTransaction(): Promise<void> {
@@ -391,11 +445,11 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Rolls back the current transaction.
-   * 
+   *
    * Note: D1 doesn't support true rollback - once a query is executed, it's committed.
    * This is a limitation of D1's transaction model. This method only cleans up
    * transaction state.
-   * 
+   *
    * @throws {D1TransactionError} If no transaction is active
    */
   async rollbackTransaction(): Promise<void> {
@@ -414,23 +468,23 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Gets a single table by name.
-   * 
+   *
    * @param tableName - Name of the table
    * @returns Table metadata or undefined if not found
    */
   async getTable(tableName: string): Promise<Table | undefined> {
     const query = `SELECT name, sql FROM sqlite_master WHERE type='table' AND name = ?`;
     const result = await this.query(query, [tableName]);
-    
+
     if (!result || !Array.isArray(result) || result.length === 0) {
       return undefined;
     }
-    
+
     const row = result[0] as { name: string; sql: string };
     if (!row.sql) {
       return undefined;
     }
-    
+
     try {
       return MetadataParser.parseTableSql(row.sql, row.name);
     } catch (error) {
@@ -441,40 +495,46 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Gets all tables (optionally filtered by names).
-   * 
+   *
    * @param tableNames - Optional array of table names to filter
    * @returns Array of table metadata
    */
   async getTables(tableNames?: string[]): Promise<Table[]> {
     const query = tableNames
-      ? `SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN (${tableNames.map(() => '?').join(',')})`
+      ? `SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN (${tableNames.map(() => "?").join(",")})`
       : `SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'`;
-    
+
     const result = await this.query(query, tableNames || undefined);
-    
+
     if (!result || !Array.isArray(result)) {
       return [];
     }
-    
+
     const tables: Table[] = [];
     for (const row of result) {
       const tableRow = row as { name: string; sql: string };
       if (tableRow.sql) {
         try {
-          const table = MetadataParser.parseTableSql(tableRow.sql, tableRow.name);
+          const table = MetadataParser.parseTableSql(
+            tableRow.sql,
+            tableRow.name,
+          );
           tables.push(table);
         } catch (error) {
-          console.warn(`Failed to parse table SQL for ${tableRow.name}:`, error);
+          console.warn(
+            `Failed to parse table SQL for ${tableRow.name}:`,
+            error,
+          );
         }
       }
     }
-    
+
     return tables;
   }
 
   /**
    * Gets a single view by name.
-   * 
+   *
    * @param viewName - Name of the view
    * @returns View metadata or undefined if the view does not exist
    */
@@ -490,13 +550,13 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Gets all views (optionally filtered by names).
-   * 
+   *
    * @param viewNames - Optional array of view names to filter
    * @returns View metadata for matching views
    */
   async getViews(viewNames?: string[]): Promise<View[]> {
     const query = viewNames
-      ? `SELECT name, sql FROM sqlite_master WHERE type='view' AND name IN (${viewNames.map(() => '?').join(',')})`
+      ? `SELECT name, sql FROM sqlite_master WHERE type='view' AND name IN (${viewNames.map(() => "?").join(",")})`
       : `SELECT name, sql FROM sqlite_master WHERE type='view'`;
     const result = await this.query(query, viewNames || undefined);
     if (!result || !Array.isArray(result)) {
@@ -509,7 +569,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Creates a new table.
-   * 
+   *
    * @param table - Table metadata
    * @param ifNotExist - Whether to use IF NOT EXISTS clause
    */
@@ -520,21 +580,27 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Drops a table.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param ifExist - Whether to use IF EXISTS clause
    */
-  async dropTable(tableOrName: Table | string, ifExist?: boolean): Promise<void> {
-    const tableName = typeof tableOrName === "string" ? tableOrName : (tableOrName as Table).name;
+  async dropTable(
+    tableOrName: Table | string,
+    ifExist?: boolean,
+  ): Promise<void> {
+    const tableName =
+      typeof tableOrName === "string"
+        ? tableOrName
+        : (tableOrName as Table).name;
     const sql = `DROP TABLE ${ifExist ? "IF EXISTS " : ""}${this.escape(tableName)}`;
     await this.query(sql);
   }
 
   /**
    * Creates a new view.
-   * 
+   *
    * Note: D1 has limited view support.
-   * 
+   *
    * @param view - View metadata
    * @param syncWithMetadata - Whether to sync with metadata
    */
@@ -545,51 +611,56 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Drops a view.
-   * 
+   *
    * @param viewOrName - View metadata or view name
    */
   async dropView(viewOrName: View | string): Promise<void> {
-    const viewName = typeof viewOrName === "string" ? viewOrName : viewOrName.name;
+    const viewName =
+      typeof viewOrName === "string" ? viewOrName : viewOrName.name;
     const sql = `DROP VIEW IF EXISTS ${this.escape(viewName)}`;
     await this.query(sql);
   }
 
   /**
    * Adds a column to a table.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param column - Column metadata
    */
-  async addColumn(tableOrName: Table | string, column: TableColumn): Promise<void> {
-    const tableName = typeof tableOrName === "string" ? tableOrName : tableOrName.name;
+  async addColumn(
+    tableOrName: Table | string,
+    column: TableColumn,
+  ): Promise<void> {
+    const tableName =
+      typeof tableOrName === "string" ? tableOrName : tableOrName.name;
     const sql = `ALTER TABLE ${this.escape(tableName)} ADD COLUMN ${this.buildCreateColumnSql(column)}`;
     await this.query(sql);
   }
 
   /**
    * Drops a column from a table.
-   * 
+   *
    * Note: SQLite/D1 doesn't support DROP COLUMN directly.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param columnOrName - Column metadata or column name
    * @throws {D1ValidationError} Always throws, as operation is not supported
    */
-  async dropColumn(tableOrName: Table | string, columnOrName: TableColumn | string): Promise<void> {
-    throw new D1ValidationError(
-      "SQLite/D1 doesn't support DROP COLUMN",
-      {
-        hint: "Use a migration to recreate the table",
-        operation: "dropColumn",
-      }
-    );
+  async dropColumn(
+    tableOrName: Table | string,
+    columnOrName: TableColumn | string,
+  ): Promise<void> {
+    throw new D1ValidationError("SQLite/D1 doesn't support DROP COLUMN", {
+      hint: "Use a migration to recreate the table",
+      operation: "dropColumn",
+    });
   }
 
   /**
    * Changes a column in a table.
-   * 
+   *
    * Note: SQLite/D1 has limited ALTER TABLE support.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param oldColumnOrName - Old column metadata or name
    * @param newColumn - New column metadata
@@ -598,22 +669,19 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   async changeColumn(
     tableOrName: Table | string,
     oldColumnOrName: TableColumn | string,
-    newColumn: TableColumn
+    newColumn: TableColumn,
   ): Promise<void> {
-    throw new D1ValidationError(
-      "SQLite/D1 has limited ALTER TABLE support",
-      {
-        hint: "Use a migration to recreate the table",
-        operation: "changeColumn",
-      }
-    );
+    throw new D1ValidationError("SQLite/D1 has limited ALTER TABLE support", {
+      hint: "Use a migration to recreate the table",
+      operation: "changeColumn",
+    });
   }
 
   /**
    * Renames a column in a table.
-   * 
+   *
    * Note: SQLite/D1 may not support RENAME COLUMN.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param oldColumnOrName - Old column metadata or name
    * @param newColumnName - New column name
@@ -622,34 +690,37 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   async renameColumn(
     tableOrName: Table | string,
     oldColumnOrName: TableColumn | string,
-    newColumnName: string
+    newColumnName: string,
   ): Promise<void> {
-    throw new D1ValidationError(
-      "SQLite/D1 may not support RENAME COLUMN",
-      {
-        hint: "Use a migration to recreate the table",
-        operation: "renameColumn",
-      }
-    );
+    throw new D1ValidationError("SQLite/D1 may not support RENAME COLUMN", {
+      hint: "Use a migration to recreate the table",
+      operation: "renameColumn",
+    });
   }
 
   /**
    * Adds a column to a table (alias for addColumn).
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param column - Column metadata
    */
-  async addColumnToTable(tableOrName: Table | string, column: TableColumn): Promise<void> {
+  async addColumnToTable(
+    tableOrName: Table | string,
+    column: TableColumn,
+  ): Promise<void> {
     await this.addColumn(tableOrName, column);
   }
 
   /**
    * Adds multiple columns to a table.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param columns - Array of column metadata
    */
-  async addColumns(tableOrName: Table | string, columns: TableColumn[]): Promise<void> {
+  async addColumns(
+    tableOrName: Table | string,
+    columns: TableColumn[],
+  ): Promise<void> {
     for (const column of columns) {
       await this.addColumn(tableOrName, column);
     }
@@ -657,48 +728,56 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Drops multiple columns from a table.
-   * 
+   *
    * Note: SQLite/D1 doesn't support DROP COLUMN directly.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param columns - Array of column metadata
    * @throws {D1ValidationError} Always throws, as operation is not supported
    */
-  async dropColumns(tableOrName: Table | string, columns: TableColumn[]): Promise<void> {
-    throw new D1ValidationError(
-      "SQLite/D1 doesn't support DROP COLUMN",
-      {
-        hint: "Use a migration to recreate the table",
-        operation: "dropColumns",
-      }
-    );
+  async dropColumns(
+    tableOrName: Table | string,
+    columns: TableColumn[],
+  ): Promise<void> {
+    throw new D1ValidationError("SQLite/D1 doesn't support DROP COLUMN", {
+      hint: "Use a migration to recreate the table",
+      operation: "dropColumns",
+    });
   }
 
   /**
    * Creates an index on a table.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param index - Index metadata
    */
   async createIndex(
     tableOrName: Table | string,
-    index: TableIndex
+    index: TableIndex,
   ): Promise<void> {
-    const tableName = typeof tableOrName === "string" ? tableOrName : tableOrName.name;
+    const tableName =
+      typeof tableOrName === "string" ? tableOrName : tableOrName.name;
     const sql = this.buildCreateIndexSql(tableName, index);
     await this.query(sql);
   }
 
   /**
    * Drops an index from a table.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param indexOrName - Index metadata or index name
    * @throws {D1ValidationError} If index name is missing
    */
-  async dropIndex(tableOrName: Table | string, indexOrName: TableIndex | string): Promise<void> {
-    const tableName = typeof tableOrName === "string" ? tableOrName : tableOrName.name;
-    const indexName = typeof indexOrName === "string" ? indexOrName : (indexOrName as TableIndex).name;
+  async dropIndex(
+    tableOrName: Table | string,
+    indexOrName: TableIndex | string,
+  ): Promise<void> {
+    const tableName =
+      typeof tableOrName === "string" ? tableOrName : tableOrName.name;
+    const indexName =
+      typeof indexOrName === "string"
+        ? indexOrName
+        : (indexOrName as TableIndex).name;
     if (!indexName) {
       throw new D1ValidationError("Index name is required", {
         operation: "dropIndex",
@@ -710,75 +789,75 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Creates a foreign key constraint.
-   * 
+   *
    * Note: SQLite/D1 doesn't support adding foreign keys to existing tables.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param foreignKey - Foreign key metadata
    * @throws {D1ValidationError} Always throws, as operation is not supported
    */
   async createForeignKey(
     tableOrName: Table | string,
-    foreignKey: TableForeignKey
+    foreignKey: TableForeignKey,
   ): Promise<void> {
     throw new D1ValidationError(
       "SQLite/D1 doesn't support adding foreign keys to existing tables",
       {
         hint: "Define them in CREATE TABLE",
         operation: "createForeignKey",
-      }
+      },
     );
   }
 
   /**
    * Drops a foreign key constraint.
-   * 
+   *
    * Note: SQLite/D1 doesn't support dropping foreign keys.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param foreignKeyOrName - Foreign key metadata or name
    * @throws {D1ValidationError} Always throws, as operation is not supported
    */
   async dropForeignKey(
     tableOrName: Table | string,
-    foreignKeyOrName: TableForeignKey | string
+    foreignKeyOrName: TableForeignKey | string,
   ): Promise<void> {
     throw new D1ValidationError(
       "SQLite/D1 doesn't support dropping foreign keys",
       {
         hint: "Use a migration to recreate the table",
         operation: "dropForeignKey",
-      }
+      },
     );
   }
 
   /**
    * Creates a primary key constraint.
-   * 
+   *
    * Note: SQLite/D1 doesn't support adding primary keys to existing tables.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @param columnNames - Array of column names
    * @throws {D1ValidationError} Always throws, as operation is not supported
    */
   async createPrimaryKey(
     tableOrName: Table | string,
-    columnNames: string[]
+    columnNames: string[],
   ): Promise<void> {
     throw new D1ValidationError(
       "SQLite/D1 doesn't support adding primary keys to existing tables",
       {
         hint: "Define them in CREATE TABLE",
         operation: "createPrimaryKey",
-      }
+      },
     );
   }
 
   /**
    * Drops a primary key constraint.
-   * 
+   *
    * Note: SQLite/D1 doesn't support dropping primary keys.
-   * 
+   *
    * @param tableOrName - Table metadata or table name
    * @throws {D1ValidationError} Always throws, as operation is not supported
    */
@@ -788,13 +867,13 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
       {
         hint: "Use a migration to recreate the table",
         operation: "dropPrimaryKey",
-      }
+      },
     );
   }
 
   /**
    * Clears all data from a table.
-   * 
+   *
    * @param tableName - Table name
    */
   async clearTable(tableName: string): Promise<void> {
@@ -815,7 +894,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Escapes a database identifier (table name, column name, etc.).
-   * 
+   *
    * @param name - Identifier name
    * @returns Escaped identifier
    */
@@ -825,7 +904,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Builds CREATE TABLE SQL statement.
-   * 
+   *
    * @param table - Table metadata
    * @param ifNotExist - Whether to use IF NOT EXISTS clause
    * @returns SQL statement
@@ -833,43 +912,57 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   protected buildCreateTableSql(table: Table, ifNotExist?: boolean): string {
     const primaryKeys = table.columns.filter((col) => col.isPrimary);
     const isCompositePrimary = primaryKeys.length > 1;
-    
+
     const columns = table.columns
       .map((col) => this.buildCreateColumnSql(col, isCompositePrimary))
       .join(", ");
-    
+
     // Always use IF NOT EXISTS for safety in D1/SQLite
     let sql = `CREATE TABLE IF NOT EXISTS ${this.escape(table.name)} (${columns}`;
-    
+
     if (isCompositePrimary) {
-      const pkColumns = primaryKeys.map((col) => this.escape(col.name)).join(", ");
+      const pkColumns = primaryKeys
+        .map((col) => this.escape(col.name))
+        .join(", ");
       sql += `, PRIMARY KEY (${pkColumns})`;
     }
-    
+
     sql += ")";
-    
+
     return sql;
   }
 
   /**
    * Builds CREATE COLUMN SQL fragment.
-   * 
+   *
    * @param column - Column metadata
    * @param isCompositePrimary - Whether this is part of a composite primary key
    * @returns SQL fragment
    */
-  protected buildCreateColumnSql(column: TableColumn, isCompositePrimary: boolean = false): string {
+  protected buildCreateColumnSql(
+    column: TableColumn,
+    isCompositePrimary: boolean = false,
+  ): string {
     const type = this.normalizeType(column);
     let sql = `${this.escape(column.name)} ${type}`;
 
     // For SQLite, AUTOINCREMENT only works with INTEGER PRIMARY KEY
-    if (column.isPrimary && column.isGenerated && column.generationStrategy === "increment" && !isCompositePrimary) {
+    if (
+      column.isPrimary &&
+      column.isGenerated &&
+      column.generationStrategy === "increment" &&
+      !isCompositePrimary
+    ) {
       if (type === "INTEGER") {
         sql = `${this.escape(column.name)} INTEGER PRIMARY KEY AUTOINCREMENT`;
       } else {
         sql = `${this.escape(column.name)} ${type} PRIMARY KEY`;
       }
-    } else if (column.isPrimary && !column.generationStrategy && !isCompositePrimary) {
+    } else if (
+      column.isPrimary &&
+      !column.generationStrategy &&
+      !isCompositePrimary
+    ) {
       sql += " PRIMARY KEY";
     }
 
@@ -881,7 +974,11 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
       sql += " NOT NULL";
     }
 
-    if (column.default !== null && column.default !== undefined && !(column.isGenerated && column.generationStrategy === "increment")) {
+    if (
+      column.default !== null &&
+      column.default !== undefined &&
+      !(column.isGenerated && column.generationStrategy === "increment")
+    ) {
       sql += ` DEFAULT ${this.normalizeDefault(column.default)}`;
     }
 
@@ -890,48 +987,48 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Normalizes TypeORM column type to SQLite type.
-   * 
+   *
    * @param column - Column metadata
    * @returns SQLite type string
    */
   protected normalizeType(column: TableColumn): string {
     const type = column.type.toLowerCase();
-    
+
     const typeMap: Record<string, string> = {
-      "int": "INTEGER",
-      "integer": "INTEGER",
-      "bigint": "INTEGER",
-      "smallint": "INTEGER",
-      "tinyint": "INTEGER",
-      "float": "REAL",
-      "double": "REAL",
-      "real": "REAL",
-      "decimal": "REAL",
-      "numeric": "REAL",
-      "boolean": "INTEGER",
-      "bool": "INTEGER",
-      "text": "TEXT",
-      "string": "TEXT",
-      "varchar": "TEXT",
-      "char": "TEXT",
-      "blob": "BLOB",
-      "date": "TEXT",
-      "datetime": "TEXT",
-      "timestamp": "TEXT",
-      "time": "TEXT",
+      int: "INTEGER",
+      integer: "INTEGER",
+      bigint: "INTEGER",
+      smallint: "INTEGER",
+      tinyint: "INTEGER",
+      float: "REAL",
+      double: "REAL",
+      real: "REAL",
+      decimal: "REAL",
+      numeric: "REAL",
+      boolean: "INTEGER",
+      bool: "INTEGER",
+      text: "TEXT",
+      string: "TEXT",
+      varchar: "TEXT",
+      char: "TEXT",
+      blob: "BLOB",
+      date: "TEXT",
+      datetime: "TEXT",
+      timestamp: "TEXT",
+      time: "TEXT",
     };
-    
+
     const mappedType = typeMap[type];
     if (mappedType) {
       return mappedType;
     }
-    
+
     return column.type.toUpperCase();
   }
 
   /**
    * Normalizes default value to SQL string.
-   * 
+   *
    * @param defaultValue - Default value
    * @returns SQL string representation
    */
@@ -953,15 +1050,18 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Builds CREATE INDEX SQL statement.
-   * 
+   *
    * @param tableName - Table name
    * @param index - Index metadata
    * @returns SQL statement
    */
   protected buildCreateIndexSql(tableName: string, index: TableIndex): string {
-    const columns = index.columnNames.map((name) => this.escape(name)).join(", ");
+    const columns = index.columnNames
+      .map((name) => this.escape(name))
+      .join(", ");
     const unique = index.isUnique ? "UNIQUE " : "";
-    const indexName = index.name || `IDX_${tableName}_${index.columnNames.join("_")}`;
+    const indexName =
+      index.name || `IDX_${tableName}_${index.columnNames.join("_")}`;
     return `CREATE ${unique}INDEX IF NOT EXISTS ${this.escape(indexName)} ON ${this.escape(tableName)} (${columns})`;
   }
 
@@ -983,7 +1083,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
 
   /**
    * Builds DROP TABLE SQL statement.
-   * 
+   *
    * @param tableName - Table name
    * @param ifExist - Whether to use IF EXISTS clause
    * @returns SQL statement

@@ -5,15 +5,15 @@ import { DataSource } from "typeorm/data-source/DataSource.js";
 
 /**
  * D1SchemaBuilder handles schema operations (migrations, synchronization).
- * 
+ *
  * Uses TypeORM's RdbmsSchemaBuilder which works with SQLite-based databases.
- * 
+ *
  * @public
  */
 export class D1SchemaBuilder extends RdbmsSchemaBuilder {
   /**
    * Creates a new D1SchemaBuilder instance.
-   * 
+   *
    * @param connection - TypeORM DataSource instance
    */
   constructor(connection: DataSource) {
@@ -29,4 +29,3 @@ export class D1SchemaBuilder extends RdbmsSchemaBuilder {
     await super.build();
   }
 }
-

@@ -108,7 +108,10 @@ describe("Type Normalization Tests", () => {
     });
 
     it("should handle unknown types by uppercasing", () => {
-      const column = new TableColumn({ name: "test", type: "customtype" as any });
+      const column = new TableColumn({
+        name: "test",
+        type: "customtype" as any,
+      });
       const sql = (queryRunner as any).normalizeType(column);
       expect(sql).toBe("CUSTOMTYPE");
     });
@@ -266,4 +269,3 @@ describe("Type Normalization Tests", () => {
     });
   });
 });
-

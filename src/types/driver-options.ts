@@ -5,7 +5,7 @@ import { D1Bindable, D1Database } from "./d1-database";
 
 /**
  * D1 driver connection options.
- * 
+ *
  * @public
  */
 export interface D1ConnectionOptions {
@@ -20,7 +20,10 @@ export interface D1ConnectionOptions {
  *
  * @public
  */
-export type D1DataSourceOptions = Omit<SqliteConnectionOptions, "type" | "database" | "driver"> & {
+export type D1DataSourceOptions = Omit<
+  SqliteConnectionOptions,
+  "type" | "database" | "driver"
+> & {
   database: D1Database;
 };
 
@@ -36,7 +39,7 @@ export interface D1BatchStatement {
 
 /**
  * TypeORM-compatible error codes for D1 errors.
- * 
+ *
  * @public
  */
 export type D1ErrorCode =
@@ -48,7 +51,7 @@ export type D1ErrorCode =
 
 /**
  * Extended Error interface with D1-specific error information.
- * 
+ *
  * @public
  */
 export interface D1Error extends Error {
@@ -59,7 +62,7 @@ export interface D1Error extends Error {
 
 /**
  * Context information for D1 errors.
- * 
+ *
  * @public
  */
 export interface D1ErrorContext {

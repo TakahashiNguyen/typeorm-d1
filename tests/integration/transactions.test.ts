@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -54,7 +61,9 @@ describe("Transaction Tests", () => {
       await queryRunner.commitTransaction();
 
       // Verify user was saved
-      const savedUser = await userRepository.findOne({ where: { email: "john@example.com" } });
+      const savedUser = await userRepository.findOne({
+        where: { email: "john@example.com" },
+      });
       expect(savedUser).toBeDefined();
       expect(savedUser?.name).toBe("John Doe");
 
@@ -122,7 +131,9 @@ describe("Transaction Tests", () => {
       await queryRunner.manager.save(user);
       await queryRunner.commitTransaction();
 
-      const savedUser = await userRepository.findOne({ where: { email: "john@example.com" } });
+      const savedUser = await userRepository.findOne({
+        where: { email: "john@example.com" },
+      });
       expect(savedUser).toBeDefined();
 
       await queryRunner.release();
@@ -138,14 +149,18 @@ describe("Transaction Tests", () => {
       await queryRunner.startTransaction();
 
       // Get the entity instance from the transaction manager
-      const userInTx = await queryRunner.manager.findOne(User, { where: { id: user.id } });
+      const userInTx = await queryRunner.manager.findOne(User, {
+        where: { id: user.id },
+      });
       if (userInTx) {
         userInTx.name = "Jane Doe";
         await queryRunner.manager.save(userInTx);
       }
       await queryRunner.commitTransaction();
 
-      const updatedUser = await userRepository.findOne({ where: { id: user.id } });
+      const updatedUser = await userRepository.findOne({
+        where: { id: user.id },
+      });
       expect(updatedUser?.name).toBe("Jane Doe");
 
       await queryRunner.release();
@@ -161,13 +176,17 @@ describe("Transaction Tests", () => {
       await queryRunner.startTransaction();
 
       // Need to get the entity instance for remove()
-      const userEntity = await queryRunner.manager.findOne(User, { where: { id: user.id } });
+      const userEntity = await queryRunner.manager.findOne(User, {
+        where: { id: user.id },
+      });
       if (userEntity) {
         await queryRunner.manager.remove(userEntity);
       }
       await queryRunner.commitTransaction();
 
-      const deletedUser = await userRepository.findOne({ where: { id: user.id } });
+      const deletedUser = await userRepository.findOne({
+        where: { id: user.id },
+      });
       expect(deletedUser).toBeNull();
 
       await queryRunner.release();
@@ -206,16 +225,20 @@ describe("Transaction Tests", () => {
       });
 
       await queryRunner.manager.save(user);
-      
+
       // Note: In D1, queries are executed immediately, so user is visible before commit
       // This is different from traditional databases but expected for D1
-      const userBeforeCommit = await userRepository.findOne({ where: { email: "john-commit-test@example.com" } });
+      const userBeforeCommit = await userRepository.findOne({
+        where: { email: "john-commit-test@example.com" },
+      });
       // In D1, the user is already visible because queries execute immediately
-      
+
       await queryRunner.commitTransaction();
 
       // After commit, user should still be visible (it was already visible)
-      const userAfterCommit = await userRepository.findOne({ where: { email: "john-commit-test@example.com" } });
+      const userAfterCommit = await userRepository.findOne({
+        where: { email: "john-commit-test@example.com" },
+      });
       expect(userAfterCommit).toBeDefined();
 
       await queryRunner.release();
@@ -233,7 +256,9 @@ describe("Transaction Tests", () => {
       await queryRunner.manager.save(user);
       await queryRunner.rollbackTransaction();
 
-      const userAfterRollback = await userRepository.findOne({ where: { email: "john-rollback-discard@example.com" } });
+      const userAfterRollback = await userRepository.findOne({
+        where: { email: "john-rollback-discard@example.com" },
+      });
       expect(userAfterRollback).toBeDefined();
       expect(queryRunner.isTransactionActive).toBe(false);
 
@@ -275,7 +300,7 @@ describe("Transaction Tests", () => {
 
     it("should handle transaction cleanup on error", async () => {
       const queryRunner = dataSource.createQueryRunner();
-      
+
       try {
         await queryRunner.startTransaction();
         throw new Error("Test error");
@@ -474,7 +499,9 @@ describe("Transaction Tests", () => {
       });
 
       // Create multiple query runners for concurrent reads
-      const runners = Array.from({ length: 5 }, () => dataSource.createQueryRunner());
+      const runners = Array.from({ length: 5 }, () =>
+        dataSource.createQueryRunner(),
+      );
 
       // Start transactions
       await Promise.all(runners.map((runner) => runner.startTransaction()));
@@ -483,7 +510,7 @@ describe("Transaction Tests", () => {
       const readPromises = runners.map((runner) =>
         runner.manager.find(User, {
           where: { email: "concurrent-read-1@example.com" },
-        })
+        }),
       );
 
       const results = await Promise.all(readPromises);

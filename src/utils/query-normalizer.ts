@@ -5,7 +5,7 @@ export class QueryNormalizer {
   /**
    * Normalizes a SQL query string for D1 compatibility.
    * Currently handles DROP INDEX statements by adding IF EXISTS clause.
-   * 
+   *
    * @param query - The SQL query string to normalize
    * @returns The normalized query string
    */
@@ -24,18 +24,21 @@ export class QueryNormalizer {
 
   /**
    * Determines the type of SQL query (SELECT, INSERT, etc.).
-   * 
+   *
    * @param query - The SQL query string
    * @returns Object indicating if query is SELECT or INSERT
    */
-  static determineQueryType(query: string): { isSelect: boolean; isInsert: boolean } {
+  static determineQueryType(query: string): {
+    isSelect: boolean;
+    isInsert: boolean;
+  } {
     const trimmedQuery = query.trim().toUpperCase();
     return {
-      isSelect: trimmedQuery.startsWith("SELECT") || 
-                trimmedQuery.startsWith("WITH") ||
-                trimmedQuery.startsWith("PRAGMA"),
+      isSelect:
+        trimmedQuery.startsWith("SELECT") ||
+        trimmedQuery.startsWith("WITH") ||
+        trimmedQuery.startsWith("PRAGMA"),
       isInsert: trimmedQuery.startsWith("INSERT"),
     };
   }
 }
-

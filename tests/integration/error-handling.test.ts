@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -264,7 +272,9 @@ describe("Error Handling Tests", () => {
 
     it("should include query context in error message", async () => {
       try {
-        await queryRunner.query("SELECT * FROM non_existent_table WHERE id = 1");
+        await queryRunner.query(
+          "SELECT * FROM non_existent_table WHERE id = 1",
+        );
         expect(true).toBe(false);
       } catch (error: any) {
         expect(error.message).toContain("Query:");
@@ -293,7 +303,7 @@ describe("Error Handling Tests", () => {
 
     it("should handle errors during transaction rollback", async () => {
       await queryRunner.startTransaction();
-      
+
       // Rollback should work even if there were errors
       await queryRunner.rollbackTransaction();
       expect(queryRunner.isTransactionActive).toBe(false);
@@ -303,7 +313,7 @@ describe("Error Handling Tests", () => {
   describe("Error Message Formatting", () => {
     it("should format errors with query context", async () => {
       const longQuery = "SELECT * FROM " + "a".repeat(300) + "_table";
-      
+
       try {
         await queryRunner.query(longQuery);
         expect(true).toBe(false);
@@ -377,4 +387,3 @@ describe("Error Handling Tests", () => {
     });
   });
 });
-

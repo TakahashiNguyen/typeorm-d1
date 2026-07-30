@@ -1,7 +1,20 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
-import { User, Post, Profile, Tag, TestConstraints } from "../fixtures/entities";
+import {
+  User,
+  Post,
+  Profile,
+  Tag,
+  TestConstraints,
+} from "../fixtures/entities";
 import { cleanupDatabase } from "../setup";
 
 describe("Error Handling Tests", () => {
@@ -11,7 +24,13 @@ describe("Error Handling Tests", () => {
 
   beforeAll(async () => {
     // Include all related entities to avoid relation metadata errors
-    dataSource = await createTestDataSource([User, Post, Profile, Tag, TestConstraints]);
+    dataSource = await createTestDataSource([
+      User,
+      Post,
+      Profile,
+      Tag,
+      TestConstraints,
+    ]);
     await dataSource.initialize();
     userRepository = dataSource.getRepository(User);
     constraintsRepository = dataSource.getRepository(TestConstraints);
@@ -38,7 +57,7 @@ describe("Error Handling Tests", () => {
       const queryRunner = dataSource.createQueryRunner();
 
       await expect(
-        queryRunner.query("SELECT * FROM non_existent_table")
+        queryRunner.query("SELECT * FROM non_existent_table"),
       ).rejects.toThrow();
 
       await queryRunner.release();
@@ -48,7 +67,7 @@ describe("Error Handling Tests", () => {
       const queryRunner = dataSource.createQueryRunner();
 
       await expect(
-        queryRunner.query("SELECT * FROM non_existent_table WHERE id = 1")
+        queryRunner.query("SELECT * FROM non_existent_table WHERE id = 1"),
       ).rejects.toThrow();
 
       await queryRunner.release();
@@ -56,7 +75,7 @@ describe("Error Handling Tests", () => {
 
     it("should handle column not found", async () => {
       await expect(
-        userRepository.find({ where: { nonExistentColumn: "value" } as any })
+        userRepository.find({ where: { nonExistentColumn: "value" } as any }),
       ).rejects.toThrow();
     });
   });
@@ -72,7 +91,7 @@ describe("Error Handling Tests", () => {
         userRepository.save({
           name: "Jane Doe",
           email: "john@example.com", // Duplicate email
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -81,7 +100,7 @@ describe("Error Handling Tests", () => {
         userRepository.save({
           name: null as any, // NOT NULL violation
           email: "test@example.com",
-        })
+        }),
       ).rejects.toThrow();
     });
 
@@ -95,7 +114,7 @@ describe("Error Handling Tests", () => {
         queryRunner.query("INSERT INTO posts (title, authorId) VALUES (?, ?)", [
           "Test Post",
           9999, // Non-existent user ID
-        ])
+        ]),
       ).rejects.toThrow();
 
       await queryRunner.release();
@@ -110,7 +129,7 @@ describe("Error Handling Tests", () => {
 
     it("should handle repository errors", async () => {
       await expect(
-        userRepository.findOne({ where: { invalidField: "value" } as any })
+        userRepository.findOne({ where: { invalidField: "value" } as any }),
       ).rejects.toThrow();
     });
 
@@ -118,7 +137,7 @@ describe("Error Handling Tests", () => {
       const queryRunner = dataSource.createQueryRunner();
 
       await expect(
-        queryRunner.query("INVALID SQL STATEMENT")
+        queryRunner.query("INVALID SQL STATEMENT"),
       ).rejects.toThrow();
 
       await queryRunner.release();
@@ -175,7 +194,7 @@ describe("Error Handling Tests", () => {
 
       // Invalid parameter count
       await expect(
-        queryRunner.query("SELECT * FROM users WHERE id = ? AND name = ?", [1])
+        queryRunner.query("SELECT * FROM users WHERE id = ? AND name = ?", [1]),
       ).rejects.toThrow();
 
       await queryRunner.release();
@@ -263,11 +282,12 @@ describe("Error Handling Tests", () => {
       // Note: D1 limitation - rollback doesn't undo already-executed queries
       // The user was saved before the error, so it will still exist
       // This is expected behavior for D1 - see ISSUES.md
-      const user = await userRepository.findOne({ where: { email: "john-error-cleanup@example.com" } });
+      const user = await userRepository.findOne({
+        where: { email: "john-error-cleanup@example.com" },
+      });
       // In D1, the user exists because queries execute immediately
       // We verify that error handling and cleanup work correctly
       expect(queryRunner.isTransactionActive).toBe(false);
     });
   });
 });
-

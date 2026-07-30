@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -124,7 +131,9 @@ describe("CRUD Operations", () => {
         email: "john-id-test@example.com",
       });
 
-      const user = await userRepository.findOne({ where: { id: savedUser.id } });
+      const user = await userRepository.findOne({
+        where: { id: savedUser.id },
+      });
 
       expect(user).toBeDefined();
       expect(user?.id).toBe(savedUser.id);
@@ -169,7 +178,9 @@ describe("CRUD Operations", () => {
     });
 
     it("should use findOneBy method", async () => {
-      const user = await userRepository.findOneBy({ email: "john@example.com" });
+      const user = await userRepository.findOneBy({
+        email: "john@example.com",
+      });
 
       expect(user).toBeDefined();
       expect(user?.email).toBe("john@example.com");
@@ -212,7 +223,9 @@ describe("CRUD Operations", () => {
     it("should update entity with update method", async () => {
       await userRepository.update(user.id, { name: "Bob Smith" });
 
-      const updatedUser = await userRepository.findOne({ where: { id: user.id } });
+      const updatedUser = await userRepository.findOne({
+        where: { id: user.id },
+      });
 
       expect(updatedUser?.name).toBe("Bob Smith");
     });
@@ -225,10 +238,7 @@ describe("CRUD Operations", () => {
     });
 
     it("should update with conditions", async () => {
-      await userRepository.update(
-        { email: "john@example.com" },
-        { age: 40 }
-      );
+      await userRepository.update({ email: "john@example.com" }, { age: 40 });
 
       const updatedUser = await userRepository.findOne({
         where: { email: "john@example.com" },
@@ -251,14 +261,18 @@ describe("CRUD Operations", () => {
     it("should delete single entity", async () => {
       await userRepository.remove(user);
 
-      const foundUser = await userRepository.findOne({ where: { id: user.id } });
+      const foundUser = await userRepository.findOne({
+        where: { id: user.id },
+      });
       expect(foundUser).toBeNull();
     });
 
     it("should delete entity with delete method", async () => {
       await userRepository.delete(user.id);
 
-      const foundUser = await userRepository.findOne({ where: { id: user.id } });
+      const foundUser = await userRepository.findOne({
+        where: { id: user.id },
+      });
       expect(foundUser).toBeNull();
     });
 
@@ -284,4 +298,3 @@ describe("CRUD Operations", () => {
     });
   });
 });
-

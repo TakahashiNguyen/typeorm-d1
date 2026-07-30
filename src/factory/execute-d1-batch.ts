@@ -14,7 +14,7 @@ import { D1ValidationError } from "../errors";
  */
 export async function executeD1Batch(
   dataSource: DataSource,
-  statements: D1BatchStatement[]
+  statements: D1BatchStatement[],
 ): Promise<D1Result[]> {
   const queryRunner = dataSource.createQueryRunner();
   try {

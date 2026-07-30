@@ -1,6 +1,6 @@
 /**
  * Shared constants for D1 driver.
- * 
+ *
  * @internal
  */
 export const CONSTANTS = {
@@ -19,4 +19,3 @@ export const CONSTANTS = {
    */
   MAX_RETRY_ATTEMPTS: 3,
 } as const;
-

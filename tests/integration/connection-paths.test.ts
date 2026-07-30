@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
@@ -36,7 +44,7 @@ describe("Connection Path Coverage Tests", () => {
 
       // Create query runner - this should trigger connection check
       const queryRunner = dataSource.createQueryRunner() as D1QueryRunner;
-      
+
       // Call connect() directly to test the connection initialization path
       // This covers lines 40-48, including the defensive checks
       const database = await queryRunner.connect();
@@ -56,7 +64,7 @@ describe("Connection Path Coverage Tests", () => {
       await dataSource.initialize();
 
       const queryRunner = dataSource.createQueryRunner();
-      
+
       // Execute a query - this ensures connection is properly initialized
       const result = await queryRunner.query("SELECT 1 as test");
       expect(result).toBeDefined();
@@ -76,7 +84,9 @@ describe("Connection Path Coverage Tests", () => {
 
       try {
         // Cause an error during transaction
-        await queryRunner.query("SELECT * FROM non_existent_table_in_transaction");
+        await queryRunner.query(
+          "SELECT * FROM non_existent_table_in_transaction",
+        );
       } catch (error: any) {
         // Error should be caught and transaction state cleaned up
         expect(error.message).toBeDefined();
@@ -124,11 +134,11 @@ describe("Connection Path Coverage Tests", () => {
       await dataSource.initialize();
 
       const queryRunner = dataSource.createQueryRunner();
-      
+
       // Clear database when it might be empty or have tables
       // This tests the getTables() path which returns empty array
       await queryRunner.clearDatabase();
-      
+
       // Should complete without error
       expect(true).toBe(true);
 
@@ -137,4 +147,3 @@ describe("Connection Path Coverage Tests", () => {
     });
   });
 });
-

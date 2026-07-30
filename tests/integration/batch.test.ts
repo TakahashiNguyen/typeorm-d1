@@ -41,17 +41,30 @@ describe("Explicit D1 Batch Execution", () => {
     });
 
     await dataSource.initialize();
-    await dataSource.query("CREATE TABLE batch_users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE)");
+    await dataSource.query(
+      "CREATE TABLE batch_users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE)",
+    );
 
     const results = await executeD1Batch(dataSource, [
-      { query: "INSERT INTO batch_users (email) VALUES (?)", parameters: ["a@example.com"] },
-      { query: "INSERT INTO batch_users (email) VALUES (?)", parameters: ["b@example.com"] },
+      {
+        query: "INSERT INTO batch_users (email) VALUES (?)",
+        parameters: ["a@example.com"],
+      },
+      {
+        query: "INSERT INTO batch_users (email) VALUES (?)",
+        parameters: ["b@example.com"],
+      },
     ]);
 
-    const rows = await dataSource.query("SELECT email FROM batch_users ORDER BY email");
+    const rows = await dataSource.query(
+      "SELECT email FROM batch_users ORDER BY email",
+    );
     expect(wrapped.getBatchCalls()).toBe(1);
     expect(results).toHaveLength(2);
-    expect(rows.map((row: any) => row.email)).toEqual(["a@example.com", "b@example.com"]);
+    expect(rows.map((row: any) => row.email)).toEqual([
+      "a@example.com",
+      "b@example.com",
+    ]);
     await dataSource.destroy();
   });
 
@@ -63,7 +76,9 @@ describe("Explicit D1 Batch Execution", () => {
     });
 
     await dataSource.initialize();
-    await expect(executeD1Batch(dataSource, [])).rejects.toThrow("D1 batch requires at least one statement");
+    await expect(executeD1Batch(dataSource, [])).rejects.toThrow(
+      "D1 batch requires at least one statement",
+    );
     await dataSource.destroy();
   });
 
@@ -75,13 +90,21 @@ describe("Explicit D1 Batch Execution", () => {
     });
 
     await dataSource.initialize();
-    await dataSource.query("CREATE TABLE batch_unique (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE)");
+    await dataSource.query(
+      "CREATE TABLE batch_unique (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT UNIQUE)",
+    );
 
     await expect(
       executeD1Batch(dataSource, [
-        { query: "INSERT INTO batch_unique (email) VALUES (?)", parameters: ["duplicate@example.com"] },
-        { query: "INSERT INTO batch_unique (email) VALUES (?)", parameters: ["duplicate@example.com"] },
-      ])
+        {
+          query: "INSERT INTO batch_unique (email) VALUES (?)",
+          parameters: ["duplicate@example.com"],
+        },
+        {
+          query: "INSERT INTO batch_unique (email) VALUES (?)",
+          parameters: ["duplicate@example.com"],
+        },
+      ]),
     ).rejects.toThrow();
 
     const rows = await dataSource.query("SELECT email FROM batch_unique");
@@ -97,9 +120,14 @@ describe("Explicit D1 Batch Execution", () => {
     });
 
     await dataSource.initialize();
-    await dataSource.query("CREATE TABLE batch_nulls (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT NULL)");
+    await dataSource.query(
+      "CREATE TABLE batch_nulls (id INTEGER PRIMARY KEY AUTOINCREMENT, value TEXT NULL)",
+    );
     await executeD1Batch(dataSource, [
-      { query: "INSERT INTO batch_nulls (value) VALUES (?)", parameters: [undefined] },
+      {
+        query: "INSERT INTO batch_nulls (value) VALUES (?)",
+        parameters: [undefined],
+      },
     ]);
 
     const rows = await dataSource.query("SELECT value FROM batch_nulls");

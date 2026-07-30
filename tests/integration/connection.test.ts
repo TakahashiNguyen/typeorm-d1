@@ -1,4 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "@jest/globals";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+} from "@jest/globals";
 import { DataSource } from "typeorm";
 import { createD1DataSource } from "../../src/factory";
 import { getTestDatabase, cleanupDatabase, closeDatabase } from "../setup";
@@ -147,9 +154,11 @@ describe("Connection Tests", () => {
       expect(dataSource.isInitialized).toBe(true);
 
       // Verify table was created
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='users'",
+        )
+        .all();
 
       expect(result.results).toBeDefined();
       expect(result.results?.length).toBeGreaterThan(0);
@@ -168,4 +177,3 @@ describe("Connection Tests", () => {
     });
   });
 });
-

@@ -1,5 +1,20 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from "@jest/globals";
-import { DataSource, Table, TableColumn, TableIndex, TableForeignKey, View } from "typeorm";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+} from "@jest/globals";
+import {
+  DataSource,
+  Table,
+  TableColumn,
+  TableIndex,
+  TableForeignKey,
+  View,
+} from "typeorm";
 import { createTestDataSource, cleanupDataSource } from "../fixtures/database";
 import { User, Post, Profile, Tag } from "../fixtures/entities";
 import { getTestDatabase, cleanupDatabase, closeDatabase } from "../setup";
@@ -51,18 +66,22 @@ describe("Schema Operations Tests", () => {
       `);
 
       // Verify table exists
-      const before = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='test_drop_table'"
-      ).all();
+      const before = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='test_drop_table'",
+        )
+        .all();
       expect(before.results?.length).toBe(1);
 
       // Drop with IF EXISTS
       await queryRunner.dropTable("test_drop_table", true);
 
       // Verify table is gone
-      const after = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='test_drop_table'"
-      ).all();
+      const after = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='test_drop_table'",
+        )
+        .all();
       expect(after.results?.length).toBe(0);
     });
 
@@ -79,15 +98,17 @@ describe("Schema Operations Tests", () => {
       await queryRunner.dropTable("test_drop_table2", false);
 
       // Verify table is gone
-      const after = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='test_drop_table2'"
-      ).all();
+      const after = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name='test_drop_table2'",
+        )
+        .all();
       expect(after.results?.length).toBe(0);
     });
 
     it("should throw error when dropping non-existent table without IF EXISTS", async () => {
       await expect(
-        queryRunner.dropTable("non_existent_table", false)
+        queryRunner.dropTable("non_existent_table", false),
       ).rejects.toThrow();
     });
 
@@ -97,13 +118,13 @@ describe("Schema Operations Tests", () => {
       expect(table).toBeDefined();
       expect(table?.name).toBe("users");
       expect(table?.columns.length).toBeGreaterThan(0);
-      
+
       // Verify column properties
-      const idColumn = table?.columns.find(c => c.name === "id");
+      const idColumn = table?.columns.find((c) => c.name === "id");
       expect(idColumn?.isPrimary).toBe(true);
       expect(idColumn?.isGenerated).toBe(true);
-      
-      const emailColumn = table?.columns.find(c => c.name === "email");
+
+      const emailColumn = table?.columns.find((c) => c.name === "email");
       expect(emailColumn?.isUnique).toBe(true);
     });
 
@@ -112,7 +133,7 @@ describe("Schema Operations Tests", () => {
       // getTables now returns parsed table metadata
       expect(Array.isArray(tables)).toBe(true);
       expect(tables.length).toBeGreaterThan(0);
-      expect(tables.some(t => t.name === "users")).toBe(true);
+      expect(tables.some((t) => t.name === "users")).toBe(true);
     });
 
     it("should get tables with specific names", async () => {
@@ -138,26 +159,32 @@ describe("Schema Operations Tests", () => {
       const loadedView = await queryRunner.getView("users_view");
       expect(loadedView).toBeDefined();
       expect(loadedView?.name).toBe("users_view");
-      expect(String(loadedView?.expression)).toContain("SELECT id, name FROM users");
+      expect(String(loadedView?.expression)).toContain(
+        "SELECT id, name FROM users",
+      );
 
       await queryRunner.dropView("users_view");
       expect(await queryRunner.getView("users_view")).toBeUndefined();
     });
 
     it("should get views list", async () => {
-      await queryRunner.createView(new View({
-        name: "users_view_one",
-        expression: "SELECT id FROM users",
-      }));
-      await queryRunner.createView(new View({
-        name: "users_view_two",
-        expression: "SELECT name FROM users",
-      }));
+      await queryRunner.createView(
+        new View({
+          name: "users_view_one",
+          expression: "SELECT id FROM users",
+        }),
+      );
+      await queryRunner.createView(
+        new View({
+          name: "users_view_two",
+          expression: "SELECT name FROM users",
+        }),
+      );
 
       const views = await queryRunner.getViews();
       expect(Array.isArray(views)).toBe(true);
       expect(views.map((view) => view.name)).toEqual(
-        expect.arrayContaining(["users_view_one", "users_view_two"])
+        expect.arrayContaining(["users_view_one", "users_view_two"]),
       );
 
       await queryRunner.dropView("users_view_one");
@@ -165,10 +192,12 @@ describe("Schema Operations Tests", () => {
     });
 
     it("should get views with specific names", async () => {
-      await queryRunner.createView(new View({
-        name: "specific_view",
-        expression: "SELECT id FROM users",
-      }));
+      await queryRunner.createView(
+        new View({
+          name: "specific_view",
+          expression: "SELECT id FROM users",
+        }),
+      );
 
       const views = await queryRunner.getViews(["specific_view"]);
       expect(Array.isArray(views)).toBe(true);
@@ -197,8 +226,12 @@ describe("Schema Operations Tests", () => {
       await queryRunner.addColumn("test_add_column", column);
 
       // Verify column was added
-      const result = await db.prepare("PRAGMA table_info(test_add_column)").all();
-      const newColumn = result.results?.find((col: any) => col.name === "new_column");
+      const result = await db
+        .prepare("PRAGMA table_info(test_add_column)")
+        .all();
+      const newColumn = result.results?.find(
+        (col: any) => col.name === "new_column",
+      );
       expect(newColumn).toBeDefined();
       expect(newColumn?.type).toBe("TEXT");
     });
@@ -218,7 +251,9 @@ describe("Schema Operations Tests", () => {
       await queryRunner.addColumns("test_add_columns", columns);
 
       // Verify columns were added
-      const result = await db.prepare("PRAGMA table_info(test_add_columns)").all();
+      const result = await db
+        .prepare("PRAGMA table_info(test_add_columns)")
+        .all();
       const col1 = result.results?.find((col: any) => col.name === "col1");
       const col2 = result.results?.find((col: any) => col.name === "col2");
       expect(col1).toBeDefined();
@@ -234,7 +269,7 @@ describe("Schema Operations Tests", () => {
       `);
 
       await expect(
-        queryRunner.dropColumn("test_drop_column", "name")
+        queryRunner.dropColumn("test_drop_column", "name"),
       ).rejects.toThrow();
     });
 
@@ -250,7 +285,7 @@ describe("Schema Operations Tests", () => {
       const newColumn = new TableColumn({ name: "name", type: "INTEGER" });
 
       await expect(
-        queryRunner.changeColumn("test_change_column", oldColumn, newColumn)
+        queryRunner.changeColumn("test_change_column", oldColumn, newColumn),
       ).rejects.toThrow("SQLite/D1 has limited ALTER TABLE support");
     });
 
@@ -263,7 +298,7 @@ describe("Schema Operations Tests", () => {
       `);
 
       await expect(
-        queryRunner.renameColumn("test_rename_column", "name", "new_name")
+        queryRunner.renameColumn("test_rename_column", "name", "new_name"),
       ).rejects.toThrow("SQLite/D1 may not support RENAME COLUMN");
     });
 
@@ -282,7 +317,7 @@ describe("Schema Operations Tests", () => {
       ];
 
       await expect(
-        queryRunner.dropColumns("test_drop_columns", columns)
+        queryRunner.dropColumns("test_drop_columns", columns),
       ).rejects.toThrow("SQLite/D1 doesn't support DROP COLUMN");
     });
   });
@@ -306,9 +341,11 @@ describe("Schema Operations Tests", () => {
       await queryRunner.createIndex("test_index", index);
 
       // Verify index was created
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_name'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_name'",
+        )
+        .all();
       expect(result.results?.length).toBe(1);
     });
 
@@ -329,9 +366,11 @@ describe("Schema Operations Tests", () => {
       await queryRunner.createIndex("test_unique_index", index);
 
       // Verify unique index was created
-      const result = await db.prepare(
-        "SELECT name, sql FROM sqlite_master WHERE type='index' AND name='idx_test_email_unique'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name, sql FROM sqlite_master WHERE type='index' AND name='idx_test_email_unique'",
+        )
+        .all();
       expect(result.results?.length).toBe(1);
       expect(result.results?.[0].sql?.toUpperCase()).toContain("UNIQUE");
     });
@@ -354,9 +393,11 @@ describe("Schema Operations Tests", () => {
       await queryRunner.createIndex("test_multi_index", index);
 
       // Verify index was created
-      const result = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_multi'"
-      ).all();
+      const result = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_multi'",
+        )
+        .all();
       expect(result.results?.length).toBe(1);
     });
 
@@ -373,18 +414,22 @@ describe("Schema Operations Tests", () => {
       `);
 
       // Verify index exists
-      const before = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_drop'"
-      ).all();
+      const before = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_drop'",
+        )
+        .all();
       expect(before.results?.length).toBe(1);
 
       // Drop index
       await queryRunner.dropIndex("test_drop_index", "idx_test_drop");
 
       // Verify index is gone
-      const after = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_drop'"
-      ).all();
+      const after = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_test_drop'",
+        )
+        .all();
       expect(after.results?.length).toBe(0);
     });
 
@@ -393,9 +438,9 @@ describe("Schema Operations Tests", () => {
         columnNames: ["name"],
       });
 
-      await expect(
-        queryRunner.dropIndex("test_table", index)
-      ).rejects.toThrow("Index name is required");
+      await expect(queryRunner.dropIndex("test_table", index)).rejects.toThrow(
+        "Index name is required",
+      );
     });
   });
 
@@ -421,13 +466,15 @@ describe("Schema Operations Tests", () => {
       });
 
       await expect(
-        queryRunner.createForeignKey("test_fk_child", foreignKey)
-      ).rejects.toThrow("SQLite/D1 doesn't support adding foreign keys to existing tables");
+        queryRunner.createForeignKey("test_fk_child", foreignKey),
+      ).rejects.toThrow(
+        "SQLite/D1 doesn't support adding foreign keys to existing tables",
+      );
     });
 
     it("should throw error when dropping foreign key (SQLite limitation)", async () => {
       await expect(
-        queryRunner.dropForeignKey("test_table", "fk_test")
+        queryRunner.dropForeignKey("test_table", "fk_test"),
       ).rejects.toThrow("SQLite/D1 doesn't support dropping foreign keys");
     });
   });
@@ -442,14 +489,16 @@ describe("Schema Operations Tests", () => {
       `);
 
       await expect(
-        queryRunner.createPrimaryKey("test_pk", ["id"])
-      ).rejects.toThrow("SQLite/D1 doesn't support adding primary keys to existing tables");
+        queryRunner.createPrimaryKey("test_pk", ["id"]),
+      ).rejects.toThrow(
+        "SQLite/D1 doesn't support adding primary keys to existing tables",
+      );
     });
 
     it("should throw error when dropping primary key (SQLite limitation)", async () => {
-      await expect(
-        queryRunner.dropPrimaryKey("test_table")
-      ).rejects.toThrow("SQLite/D1 doesn't support dropping primary keys");
+      await expect(queryRunner.dropPrimaryKey("test_table")).rejects.toThrow(
+        "SQLite/D1 doesn't support dropping primary keys",
+      );
     });
   });
 
@@ -462,17 +511,23 @@ describe("Schema Operations Tests", () => {
           name TEXT
         )
       `);
-      await queryRunner.query(`INSERT INTO test_clear (name) VALUES ('test1'), ('test2')`);
+      await queryRunner.query(
+        `INSERT INTO test_clear (name) VALUES ('test1'), ('test2')`,
+      );
 
       // Verify data exists
-      const before = await db.prepare("SELECT COUNT(*) as count FROM test_clear").first();
+      const before = await db
+        .prepare("SELECT COUNT(*) as count FROM test_clear")
+        .first();
       expect(before?.count).toBe(2);
 
       // Clear table
       await queryRunner.clearTable("test_clear");
 
       // Verify table is empty
-      const after = await db.prepare("SELECT COUNT(*) as count FROM test_clear").first();
+      const after = await db
+        .prepare("SELECT COUNT(*) as count FROM test_clear")
+        .first();
       expect(after?.count).toBe(0);
     });
 
@@ -500,9 +555,11 @@ describe("Schema Operations Tests", () => {
       await queryRunner.clearDatabase();
 
       // Verify tables still exist (clearDatabase only clears data, not tables)
-      const tables = await db.prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('test_clear1', 'test_clear2')"
-      ).all();
+      const tables = await db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('test_clear1', 'test_clear2')",
+        )
+        .all();
       // Tables should still exist
       expect(tables.results?.length).toBeGreaterThanOrEqual(0);
     });
@@ -512,11 +569,11 @@ describe("Schema Operations Tests", () => {
     it("should handle connection errors gracefully", async () => {
       // Create a query runner with invalid driver
       const invalidRunner = dataSource.createQueryRunner();
-      
+
       // This should work normally with valid connection
       const result = await invalidRunner.query("SELECT 1 as test");
       expect(result).toBeDefined();
-      
+
       await invalidRunner.release();
     });
   });

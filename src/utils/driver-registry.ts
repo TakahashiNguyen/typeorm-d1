@@ -10,7 +10,8 @@ import { D1ConnectionError } from "../errors";
  */
 export class D1DriverRegistry {
   private static isRegistered = false;
-  private static originalCreate: ((connection: DataSource) => any) | null = null;
+  private static originalCreate: ((connection: DataSource) => any) | null =
+    null;
   private static registrationCount = 0;
 
   /**
@@ -25,11 +26,13 @@ export class D1DriverRegistry {
 
     // Store original implementation
     this.originalCreate = DriverFactory.prototype.create;
-    
+
     // Patch DriverFactory to recognize D1 connections
-    DriverFactory.prototype.create = function(connection: DataSource) {
-      const driverOptions = (connection.options as { driver?: { database?: D1Database } }).driver;
-      
+    DriverFactory.prototype.create = function (connection: DataSource) {
+      const driverOptions = (
+        connection.options as { driver?: { database?: D1Database } }
+      ).driver;
+
       // Check if this is a D1 connection
       if (
         driverOptions?.database &&
@@ -39,18 +42,18 @@ export class D1DriverRegistry {
       ) {
         return new D1Driver(connection);
       }
-      
+
       // Fall back to original implementation
       if (D1DriverRegistry.originalCreate) {
         return D1DriverRegistry.originalCreate.call(this, connection);
       }
-      
+
       // Should never reach here, but provide fallback
       throw new D1ConnectionError(
-        "DriverFactory.create() called but no original implementation available"
+        "DriverFactory.create() called but no original implementation available",
       );
     };
-    
+
     this.isRegistered = true;
     this.registrationCount = 1;
   }
@@ -65,13 +68,13 @@ export class D1DriverRegistry {
     }
 
     this.registrationCount--;
-    
+
     if (this.registrationCount <= 0) {
       // Restore original implementation
       if (this.originalCreate) {
         DriverFactory.prototype.create = this.originalCreate;
       }
-      
+
       this.isRegistered = false;
       this.registrationCount = 0;
       this.originalCreate = null;
