@@ -1,3 +1,12 @@
+# 1.0.0 (2026-07-30)
+
+
+### Bug Fixes
+
+* add semantic release ([#1](https://github.com/TakahashiNguyen/typeorm-d1/issues/1)) ([ec05456](https://github.com/TakahashiNguyen/typeorm-d1/commit/ec054569f370c0fe39e4e0ec1db165baad33929e))
+* **release:** configure repositoryUrl in .releaserc ([9648397](https://github.com/TakahashiNguyen/typeorm-d1/commit/964839784d289ce83199b420d40f9c6e74e4d868))
+* trigger release ([2264c5e](https://github.com/TakahashiNguyen/typeorm-d1/commit/2264c5ef1ce7c4f578b165140078685528ade1b8))
+
 # Changelog
 
 ## Unreleased
