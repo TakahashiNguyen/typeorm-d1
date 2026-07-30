@@ -659,8 +659,6 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     });
   }
 
- 
-
   /**
    * Changes a column in a table.
    *

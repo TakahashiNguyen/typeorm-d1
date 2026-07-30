@@ -37,8 +37,14 @@ import { BetterSqlite3DataSourceOptions } from "typeorm/driver/better-sqlite3/Be
  * @public
  */
 export function createD1DataSource(options: D1DataSourceOptions): DataSource {
-  if (!options || !options.database || typeof options.database.prepare !== "function") {
-    throw new Error("Invalid D1 database instance provided to createD1DataSource");
+  if (
+    !options ||
+    !options.database ||
+    typeof options.database.prepare !== "function"
+  ) {
+    throw new Error(
+      "Invalid D1 database instance provided to createD1DataSource",
+    );
   }
 
   // Register D1 driver (idempotent)

@@ -1,8 +1,8 @@
 /** Normalizes SQL queries for D1 compatibility. */
 export class QueryNormalizer {
   /**
-   * Normalizes a SQL query string for D1 compatibility.
-   * Currently handles DROP INDEX statements by adding IF EXISTS clause.
+   * Normalizes a SQL query string for D1 compatibility. Currently handles DROP
+   * INDEX statements by adding IF EXISTS clause.
    *
    * @param query - The SQL query string to normalize
    * @returns The normalized query string

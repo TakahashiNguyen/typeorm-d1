@@ -26,27 +26,28 @@ export class D1ErrorHandler {
       lowerMessage.includes("foreign key constraint") ||
       lowerMessage.includes("foreign key") ||
       lowerMessage.includes("foreigntype") ||
-      lowerMessage.includes("constraint failed") && lowerMessage.includes("foreign")
+      (lowerMessage.includes("constraint failed") &&
+        lowerMessage.includes("foreign"))
     ) {
       return "SQLITE_CONSTRAINT_FOREIGNKEY";
     }
     if (
       lowerMessage.includes("unique constraint") ||
       lowerMessage.includes("unique") ||
-      lowerMessage.includes("constraint failed") && lowerMessage.includes("unique")
+      (lowerMessage.includes("constraint failed") &&
+        lowerMessage.includes("unique"))
     ) {
       return "SQLITE_CONSTRAINT_UNIQUE";
     }
     if (
       lowerMessage.includes("not null constraint") ||
       lowerMessage.includes("not null") ||
-      lowerMessage.includes("constraint failed") && lowerMessage.includes("notnull")
+      (lowerMessage.includes("constraint failed") &&
+        lowerMessage.includes("notnull"))
     ) {
       return "SQLITE_CONSTRAINT_NOTNULL";
     }
-    if (
-      lowerMessage.includes("constraint")
-    ) {
+    if (lowerMessage.includes("constraint")) {
       return "SQLITE_CONSTRAINT";
     }
     if (
