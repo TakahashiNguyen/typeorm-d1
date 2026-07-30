@@ -13,9 +13,7 @@ import {
   UpdateDateColumn,
 } from "typeorm";
 
-/**
- * Test entities for testing TypeORM D1 driver
- */
+/** Test entities for testing TypeORM D1 driver */
 
 // Simple entity for basic CRUD tests
 @Entity("users")

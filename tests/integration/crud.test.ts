@@ -259,10 +259,11 @@ describe("CRUD Operations", () => {
     });
 
     it("should delete single entity", async () => {
+      const userId = user.id;
       await userRepository.remove(user);
 
       const foundUser = await userRepository.findOne({
-        where: { id: user.id },
+        where: { id: userId },
       });
       expect(foundUser).toBeNull();
     });

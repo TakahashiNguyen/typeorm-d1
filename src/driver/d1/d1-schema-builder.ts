@@ -20,9 +20,7 @@ export class D1SchemaBuilder extends RdbmsSchemaBuilder {
     super(connection);
   }
 
-  /**
-   * Build and execute schema synchronization.
-   */
+  /** Build and execute schema synchronization. */
   async build(): Promise<void> {
     // The parent RdbmsSchemaBuilder handles most of the logic
     // We just need to ensure queries are executed via our query runner

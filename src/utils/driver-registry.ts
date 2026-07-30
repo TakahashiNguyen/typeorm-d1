@@ -5,8 +5,8 @@ import { D1Database } from "../types";
 import { D1ConnectionError } from "../errors";
 
 /**
- * Manages D1 driver registration with TypeORM's DriverFactory.
- * Provides better isolation than global prototype patching.
+ * Manages D1 driver registration with TypeORM's DriverFactory. Provides better
+ * isolation than global prototype patching.
  */
 export class D1DriverRegistry {
   private static isRegistered = false;
@@ -15,8 +15,8 @@ export class D1DriverRegistry {
   private static registrationCount = 0;
 
   /**
-   * Registers the D1 driver with TypeORM's DriverFactory.
-   * Safe to call multiple times (idempotent).
+   * Registers the D1 driver with TypeORM's DriverFactory. Safe to call multiple
+   * times (idempotent).
    */
   static register(): void {
     if (this.isRegistered) {
@@ -59,8 +59,8 @@ export class D1DriverRegistry {
   }
 
   /**
-   * Unregisters the D1 driver from TypeORM's DriverFactory.
-   * Only unregisters if all registrations have been unregistered.
+   * Unregisters the D1 driver from TypeORM's DriverFactory. Only unregisters if
+   * all registrations have been unregistered.
    */
   static unregister(): void {
     if (!this.isRegistered) {
@@ -81,9 +81,7 @@ export class D1DriverRegistry {
     }
   }
 
-  /**
-   * Checks if the D1 driver is currently registered.
-   */
+  /** Checks if the D1 driver is currently registered. */
   static getIsRegistered(): boolean {
     return this.isRegistered;
   }

@@ -54,12 +54,12 @@ Do not reintroduce deprecated `__D1_BETA__` bindings.
 - Public API changes need source tests and, when package output is affected,
   package smoke coverage through `scripts/verify-package.cjs`.
 - README behavior claims should have matching tests.
-- Transaction tests must state the compatibility-shim behavior clearly:
-  rollback does not undo writes.
+- Transaction tests must state the compatibility-shim behavior clearly: rollback
+  does not undo writes.
 - D1 atomic batch behavior belongs in explicit batch tests, not TypeORM
   transaction tests.
-- Schema tests should assert real SQLite metadata when claiming constraints,
-  for example `PRAGMA foreign_key_list`.
+- Schema tests should assert real SQLite metadata when claiming constraints, for
+  example `PRAGMA foreign_key_list`.
 
 ## Cleanup
 

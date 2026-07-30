@@ -105,8 +105,8 @@ const dataSource = createD1DataSource({
 
 ### `registerD1Driver()`
 
-Registers the D1 driver with TypeORM's `DriverFactory`. Most applications do
-not need this because `createD1DataSource()` calls it automatically.
+Registers the D1 driver with TypeORM's `DriverFactory`. Most applications do not
+need this because `createD1DataSource()` calls it automatically.
 
 ```typescript
 import { DataSource } from "typeorm";

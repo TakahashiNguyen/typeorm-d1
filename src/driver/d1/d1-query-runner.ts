@@ -24,6 +24,7 @@ import {
   D1ValidationError,
 } from "../../errors";
 import { D1Guards } from "../../utils/guards";
+import { Query } from "typeorm/driver/Query.js";
 
 /**
  * D1QueryRunner executes queries against Cloudflare D1 database.
@@ -35,7 +36,7 @@ import { D1Guards } from "../../utils/guards";
  */
 export class D1QueryRunner extends AbstractSqliteQueryRunner {
   driver: D1Driver;
-  connection: DataSource;
+  dataSource: DataSource;
   broadcaster: Broadcaster;
 
   private readonly transactionStatements: string[] = [];
@@ -51,15 +52,17 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   constructor(driver: D1Driver) {
     super();
     this.driver = driver;
-    this.connection = driver.connection;
+    this.dataSource = driver.dataSource;
     this.broadcaster = new Broadcaster(this);
     (this as any).isTransactionActive = false;
   }
 
   /**
-   * Creates/uses database connection from the connection pool to perform further operations.
+   * Creates/uses database connection from the connection pool to perform
+   * further operations.
    *
-   * For D1, this ensures the connection is established and returns the D1Database instance.
+   * For D1, this ensures the connection is established and returns the
+   * D1Database instance.
    *
    * @returns Promise resolving to D1Database instance
    * @throws {D1ConnectionError} If connection fails
@@ -211,9 +214,9 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   /**
    * Executes a set of prepared statements through D1's atomic batch API.
    *
-   * This is intentionally separate from TypeORM transactions. TypeORM repository
-   * calls need immediate results, while D1 batches require all statements up
-   * front.
+   * This is intentionally separate from TypeORM transactions. TypeORM
+   * repository calls need immediate results, while D1 batches require all
+   * statements up front.
    */
   async executeBatch(statements: D1BatchStatement[]): Promise<D1Result[]> {
     if (!Array.isArray(statements) || statements.length === 0) {
@@ -393,8 +396,8 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   /**
    * Starts a new transaction.
    *
-   * Note: D1 doesn't support true rollback - once a query is executed, it's committed.
-   * This method tracks transaction state for TypeORM compatibility.
+   * Note: D1 doesn't support true rollback - once a query is executed, it's
+   * committed. This method tracks transaction state for TypeORM compatibility.
    *
    * @param isolationLevel - Isolation level (not used for D1)
    * @throws {D1TransactionError} If a transaction is already active
@@ -417,8 +420,8 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   /**
    * Commits the current transaction.
    *
-   * Note: For D1, queries are already executed individually during the transaction.
-   * This method only cleans up transaction state.
+   * Note: For D1, queries are already executed individually during the
+   * transaction. This method only cleans up transaction state.
    *
    * @throws {D1TransactionError} If no transaction is active
    */
@@ -446,9 +449,9 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
   /**
    * Rolls back the current transaction.
    *
-   * Note: D1 doesn't support true rollback - once a query is executed, it's committed.
-   * This is a limitation of D1's transaction model. This method only cleans up
-   * transaction state.
+   * Note: D1 doesn't support true rollback - once a query is executed, it's
+   * committed. This is a limitation of D1's transaction model. This method only
+   * cleans up transaction state.
    *
    * @throws {D1TransactionError} If no transaction is active
    */
@@ -574,8 +577,8 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
    * @param ifNotExist - Whether to use IF NOT EXISTS clause
    */
   async createTable(table: Table, ifNotExist?: boolean): Promise<void> {
-    const sql = this.buildCreateTableSql(table, ifNotExist);
-    await this.query(sql);
+    const query = this.createTableSql(table, ifNotExist);
+    await this.query(query.query, query.parameters);
   }
 
   /**
@@ -880,9 +883,7 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     await this.query(`DELETE FROM ${this.escape(tableName)}`);
   }
 
-  /**
-   * Clears all data from all tables in the database.
-   */
+  /** Clears all data from all tables in the database. */
   async clearDatabase(): Promise<void> {
     const tables = await this.getTables();
     for (const table of tables) {
@@ -907,9 +908,9 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
    *
    * @param table - Table metadata
    * @param ifNotExist - Whether to use IF NOT EXISTS clause
-   * @returns SQL statement
+   * @returns Query object
    */
-  protected buildCreateTableSql(table: Table, ifNotExist?: boolean): string {
+  protected createTableSql(table: Table, ifNotExist?: boolean): Query {
     const primaryKeys = table.columns.filter((col) => col.isPrimary);
     const isCompositePrimary = primaryKeys.length > 1;
 
@@ -927,9 +928,19 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
       sql += `, PRIMARY KEY (${pkColumns})`;
     }
 
+    for (const fk of table.foreignKeys) {
+      const columns = fk.columnNames.map((col) => this.escape(col)).join(", ");
+      const refColumns = fk.referencedColumnNames
+        .map((col) => this.escape(col))
+        .join(", ");
+      const onDelete = fk.onDelete ? ` ON DELETE ${fk.onDelete}` : "";
+      const onUpdate = fk.onUpdate ? ` ON UPDATE ${fk.onUpdate}` : "";
+      sql += `, FOREIGN KEY (${columns}) REFERENCES ${this.escape(fk.referencedTableName)}(${refColumns})${onDelete}${onUpdate}`;
+    }
+
     sql += ")";
 
-    return sql;
+    return new Query(sql);
   }
 
   /**

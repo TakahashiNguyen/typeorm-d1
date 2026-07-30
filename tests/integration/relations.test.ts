@@ -84,7 +84,7 @@ describe("Relations Tests", () => {
 
       const userWithPosts = await userRepository.findOne({
         where: { id: user.id },
-        relations: ["posts"],
+        relations: { posts: true },
       });
 
       expect(userWithPosts).toBeDefined();
@@ -131,7 +131,7 @@ describe("Relations Tests", () => {
 
       const updatedPost = await postRepository.findOne({
         where: { id: post.id },
-        relations: ["author"],
+        relations: { author: true },
       });
 
       expect(updatedPost?.authorId).toBe(user2.id);
@@ -237,7 +237,7 @@ describe("Relations Tests", () => {
 
       const postWithTags = await postRepository.findOne({
         where: { id: post.id },
-        relations: ["tags"],
+        relations: { tags: true },
       });
 
       expect(postWithTags?.tags).toBeDefined();
@@ -266,7 +266,7 @@ describe("Relations Tests", () => {
 
       const postWithoutTags = await postRepository.findOne({
         where: { id: post.id },
-        relations: ["tags"],
+        relations: { tags: true },
       });
 
       expect(postWithoutTags?.tags.length).toBe(0);
@@ -290,7 +290,7 @@ describe("Relations Tests", () => {
 
       const postWithTags = await postRepository.findOne({
         where: { id: post.id },
-        relations: ["tags"],
+        relations: { tags: true },
       });
 
       expect(postWithTags?.tags).toBeDefined();
@@ -354,7 +354,7 @@ describe("Relations Tests", () => {
 
       const userWithProfile = await userRepository.findOne({
         where: { id: user.id },
-        relations: ["profile"],
+        relations: { profile: true },
       });
 
       expect(userWithProfile?.profile).toBeDefined();
@@ -392,7 +392,7 @@ describe("Relations Tests", () => {
       // Load from user side
       const userWithProfile = await userRepository.findOne({
         where: { id: user.id },
-        relations: ["profile"],
+        relations: { profile: true },
       });
 
       expect(userWithProfile?.profile).toBeDefined();
@@ -400,7 +400,7 @@ describe("Relations Tests", () => {
       // Load from profile side
       const profileWithUser = await profileRepository.findOne({
         where: { id: profile.id },
-        relations: ["user"],
+        relations: { user: true },
       });
 
       expect(profileWithUser?.user).toBeDefined();
@@ -418,7 +418,7 @@ describe("Relations Tests", () => {
       // User without profile
       const userWithoutProfile = await userRepository.findOne({
         where: { id: user.id },
-        relations: ["profile"],
+        relations: { profile: true },
       });
 
       // TypeORM may return null or undefined for missing relations
@@ -439,7 +439,7 @@ describe("Relations Tests", () => {
       // Post without tags
       const postWithoutTags = await postRepository.findOne({
         where: { id: post.id },
-        relations: ["tags"],
+        relations: { tags: true },
       });
 
       expect(postWithoutTags?.tags).toBeDefined();

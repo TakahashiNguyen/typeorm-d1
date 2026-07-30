@@ -3,8 +3,8 @@ import { D1Driver } from "../driver/d1";
 import { D1ConnectionError, D1ValidationError } from "../errors";
 
 /**
- * Type guards and validation functions for D1 driver.
- * Provides runtime type checking and validation with clear error messages.
+ * Type guards and validation functions for D1 driver. Provides runtime type
+ * checking and validation with clear error messages.
  *
  * @internal
  */

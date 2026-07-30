@@ -8,8 +8,8 @@ import { D1ValidationError } from "../../errors";
 /**
  * D1DriverFactory creates D1Driver instances for TypeORM.
  *
- * This factory allows TypeORM to instantiate the driver when
- * a D1Database instance is provided in driver options.
+ * This factory allows TypeORM to instantiate the driver when a D1Database
+ * instance is provided in driver options.
  *
  * @public
  */

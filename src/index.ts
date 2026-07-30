@@ -1,10 +1,11 @@
 /**
  * TypeORM Driver for Cloudflare D1
  *
- * This package provides a custom TypeORM driver that enables using
- * Cloudflare D1 (SQLite-based serverless database) with TypeORM.
+ * This package provides a custom TypeORM driver that enables using Cloudflare
+ * D1 (SQLite-based serverless database) with TypeORM.
  *
  * @example
+ *
  * ```typescript
  * import { createD1DataSource } from "typeorm-d1";
  * import { User } from "./entity/User";
@@ -26,7 +27,7 @@
  *     return new Response(JSON.stringify(users), {
  *       headers: { "Content-Type": "application/json" },
  *     });
- *   }
+ *   },
  * };
  * ```
  */

@@ -3,9 +3,7 @@ import { createD1DataSource } from "../../src/factory";
 import { D1Database } from "../../src/types";
 import { getTestDatabase } from "../setup";
 
-/**
- * Database setup utilities for tests
- */
+/** Database setup utilities for tests */
 
 export async function createTestDataSource(
   entities: any[],
@@ -58,8 +56,8 @@ export async function resetDatabase(db: D1Database): Promise<void> {
 }
 
 /**
- * Clear all data from tables in a DataSource
- * Uses raw SQL to avoid TypeORM's restriction on empty delete criteria
+ * Clear all data from tables in a DataSource Uses raw SQL to avoid TypeORM's
+ * restriction on empty delete criteria
  */
 export async function clearAllTables(dataSource: DataSource): Promise<void> {
   const queryRunner = dataSource.createQueryRunner();

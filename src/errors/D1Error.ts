@@ -1,8 +1,8 @@
 import { D1ErrorCode } from "../types";
 
 /**
- * Base error class for all D1 driver errors.
- * Provides structured error information with code, context, and query details.
+ * Base error class for all D1 driver errors. Provides structured error
+ * information with code, context, and query details.
  *
  * @public
  */
@@ -66,8 +66,8 @@ export class D1ValidationError extends D1DriverError {
 }
 
 /**
- * Error thrown when query execution fails.
- * Includes query context and error code mapping.
+ * Error thrown when query execution fails. Includes query context and error
+ * code mapping.
  *
  * @public
  */

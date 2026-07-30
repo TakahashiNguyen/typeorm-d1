@@ -5,8 +5,8 @@ import { TableForeignKey } from "typeorm/schema-builder/table/TableForeignKey.js
 import { D1ValidationError } from "../errors";
 
 /**
- * Parses CREATE TABLE SQL statements to build TypeORM Table objects.
- * Handles SQLite/D1 CREATE TABLE syntax.
+ * Parses CREATE TABLE SQL statements to build TypeORM Table objects. Handles
+ * SQLite/D1 CREATE TABLE syntax.
  */
 export class MetadataParser {
   /**

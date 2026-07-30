@@ -7,11 +7,11 @@ This document tracks current intentional behavior and public roadmap items for
 
 ### TypeORM Transaction Rollback Is Not Real Rollback
 
-Cloudflare D1 does not expose an interactive transaction API to Workers code.
-D1 does expose atomic `batch()` execution for prepared statements known up
-front, but TypeORM repository transactions are interactive: TypeORM expects to
-run statements one at a time and receive generated ids, errors, relation state,
-and read results immediately.
+Cloudflare D1 does not expose an interactive transaction API to Workers code. D1
+does expose atomic `batch()` execution for prepared statements known up front,
+but TypeORM repository transactions are interactive: TypeORM expects to run
+statements one at a time and receive generated ids, errors, relation state, and
+read results immediately.
 
 Current behavior:
 
