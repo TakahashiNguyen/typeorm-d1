@@ -33,24 +33,37 @@ export async function getTestDatabase(): Promise<D1Database> {
 export async function cleanupDatabase(): Promise<void> {
   if (db) {
     try {
-      // Get all tables and drop them
-      const tables = await db
+      const tablesResult = await db
         .prepare(
           "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'",
         )
         .all<{ name: string }>();
 
-      if (tables.results) {
-        for (const table of tables.results) {
-          try {
-            await db.prepare(`DROP TABLE IF EXISTS ${table.name}`).run();
-          } catch (error) {
-            // Ignore errors for individual table drops
+      if (tablesResult.results && tablesResult.results.length > 0) {
+        let remainingTables = tablesResult.results.map((t) => t.name);
+        let maxRetries = remainingTables.length;
+
+        while (remainingTables.length > 0 && maxRetries > 0) {
+          let droppedAny = false;
+          const nextRemaining: string[] = [];
+
+          for (const tableName of remainingTables) {
+            try {
+              await db.prepare(`DROP TABLE IF EXISTS "${tableName}"`).run();
+              droppedAny = true;
+            } catch (error) {
+              nextRemaining.push(tableName);
+            }
           }
+
+          remainingTables = nextRemaining;
+          if (!droppedAny) {
+            break;
+          }
+          maxRetries--;
         }
       }
 
-      // Also drop all indices
       const indices = await db
         .prepare(
           "SELECT name FROM sqlite_master WHERE type='index' AND name NOT LIKE 'sqlite_%' AND substr(lower(name), 1, 4) != '_cf_'",
@@ -61,14 +74,10 @@ export async function cleanupDatabase(): Promise<void> {
         for (const index of indices.results) {
           try {
             await db.prepare(`DROP INDEX IF EXISTS "${index.name}"`).run();
-          } catch (error) {
-            // Ignore errors for individual index drops
-          }
+          } catch (error) {}
         }
       }
-    } catch (error) {
-      // Ignore errors during cleanup - database might be empty
-    }
+    } catch (error) {}
   }
 }
 
