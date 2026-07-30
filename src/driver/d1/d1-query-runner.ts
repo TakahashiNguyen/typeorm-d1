@@ -744,9 +744,10 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
     tableOrName: Table | string,
     columns: TableColumn[],
   ): Promise<void> {
-    for (const column of columns) {
-      await this.dropColumn(tableOrName, column);
-    }
+    throw new D1ValidationError("SQLite/D1 doesn't support DROP COLUMN", {
+      hint: "Use a migration to recreate the table",
+      operation: "dropColumns",
+    });
   }
 
   /**
