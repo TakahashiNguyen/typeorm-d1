@@ -928,6 +928,16 @@ export class D1QueryRunner extends AbstractSqliteQueryRunner {
       sql += `, PRIMARY KEY (${pkColumns})`;
     }
 
+    for (const fk of table.foreignKeys) {
+      const columns = fk.columnNames.map((col) => this.escape(col)).join(", ");
+      const refColumns = fk.referencedColumnNames
+        .map((col) => this.escape(col))
+        .join(", ");
+      const onDelete = fk.onDelete ? ` ON DELETE ${fk.onDelete}` : "";
+      const onUpdate = fk.onUpdate ? ` ON UPDATE ${fk.onUpdate}` : "";
+      sql += `, FOREIGN KEY (${columns}) REFERENCES ${this.escape(fk.referencedTableName)}(${refColumns})${onDelete}${onUpdate}`;
+    }
+
     sql += ")";
 
     return new Query(sql);

@@ -43,7 +43,7 @@ export async function cleanupDatabase(): Promise<void> {
       if (tables.results) {
         for (const table of tables.results) {
           try {
-            await db.prepare(`DROP TABLE IF EXISTS "${table.name}"`).run();
+            await db.prepare(`DROP TABLE IF EXISTS ${table.name}`).run();
           } catch (error) {
             // Ignore errors for individual table drops
           }
