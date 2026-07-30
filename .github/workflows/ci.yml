@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
-      - run: npm ci
+      - run: pnpm ci
       - run: npm run verify
       - run: npm run verify:package
       - run: npm audit --omit=dev --audit-level=high
