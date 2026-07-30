@@ -54,6 +54,10 @@
     "url": "https://github.com/edulelis/typeorm-d1/issues"
   },
   "homepage": "https://github.com/edulelis/typeorm-d1#readme",
+  "peerDependencies": {
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "1.1.0"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "4.20260702.1",
     "@semantic-release/changelog": "7.0.0",
