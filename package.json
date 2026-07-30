@@ -29,6 +29,7 @@
     "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest",
+    "release": "semantic-release",
     "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --watch",
     "test:coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "verify:package": "npm run build && node scripts/verify-package.cjs",
