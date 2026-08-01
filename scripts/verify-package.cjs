@@ -14,7 +14,17 @@ function getPackFiles() {
     cwd: process.cwd(),
     encoding: "utf8",
   });
-  const pack = JSON.parse(output)[0];
+
+  // Extract JSON from output that may contain build logs
+  // The JSON starts with '[' and ends with ']'
+  const jsonStart = output.indexOf('[');
+  const jsonEnd = output.lastIndexOf(']') + 1;
+  if (jsonStart === -1 || jsonEnd === -1) {
+    throw new Error("Could not find JSON output in npm pack --dry-run --json");
+  }
+
+  const jsonStr = output.slice(jsonStart, jsonEnd);
+  const pack = JSON.parse(jsonStr)[0];
   return pack.files.map((file) => file.path);
 }
 
