@@ -16,16 +16,92 @@ function getPackFiles() {
   });
 
   // Extract JSON from output that may contain build logs
-  // The JSON starts with '[' and ends with ']'
-  const jsonStart = output.indexOf('[');
-  const jsonEnd = output.lastIndexOf(']') + 1;
-  if (jsonStart === -1 || jsonEnd === -1) {
-    throw new Error("Could not find JSON output in npm pack --dry-run --json");
+  // Try to find valid JSON in the output
+  let jsonStr;
+  try {
+    // First try to parse the entire output as JSON (might work if no build logs)
+    jsonStr = output.trim();
+    const parsed = JSON.parse(jsonStr);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      return parsed[0].files.map((file) => file.path);
+    }
+  } catch (e) {
+    // If that fails, try to extract JSON from mixed output
+    try {
+      // Look for the first valid JSON array in the output
+      const lines = output.split('\n');
+      let jsonStartLine = -1;
+      let jsonEndLine = -1;
+
+      // Find the start of JSON array
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].trim().startsWith('[')) {
+          jsonStartLine = i;
+          break;
+        }
+      }
+
+      // Find the end of JSON array (matching closing bracket)
+      if (jsonStartLine !== -1) {
+        let bracketCount = 0;
+        let foundStart = false;
+        for (let i = jsonStartLine; i < lines.length; i++) {
+          const line = lines[i];
+          for (const char of line) {
+            if (char === '[') {
+              bracketCount++;
+              foundStart = true;
+            } else if (char === ']') {
+              bracketCount--;
+              if (foundStart && bracketCount === 0) {
+                jsonEndLine = i;
+                break;
+              }
+            }
+          }
+          if (jsonEndLine !== -1) break;
+        }
+      }
+
+      if (jsonStartLine !== -1 && jsonEndLine !== -1) {
+        jsonStr = lines.slice(jsonStartLine, jsonEndLine + 1).join('\n');
+        const parsed = JSON.parse(jsonStr);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed[0].files.map((file) => file.path);
+        }
+      }
+    } catch (e) {
+      // Fall through to error
+    }
   }
 
-  const jsonStr = output.slice(jsonStart, jsonEnd);
-  const pack = JSON.parse(jsonStr)[0];
-  return pack.files.map((file) => file.path);
+  // Try one more approach - look for lines that contain JSON objects
+  try {
+    const jsonLines = [];
+    let inJson = false;
+    for (const line of output.split('\n')) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('[') || inJson) {
+        inJson = true;
+        jsonLines.push(line);
+        if (trimmed.endsWith(']')) {
+          inJson = false;
+          break;
+        }
+      }
+    }
+    if (jsonLines.length > 0) {
+      jsonStr = jsonLines.join('\n');
+      const parsed = JSON.parse(jsonStr);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed[0].files.map((file) => file.path);
+      }
+    }
+  } catch (e) {
+    // Fall through to error
+  }
+
+  throw new Error(`Could not find valid JSON output in npm pack --dry-run --json. Output preview: ${output.substring(0, 200)}...`);
 }
 
 function assertPackageContents(files) {
