@@ -1,3 +1,12 @@
+## [1.0.1](https://github.com/TakahashiNguyen/typeorm-d1/compare/v1.0.0...v1.0.1) (2026-08-01)
+
+
+### Bug Fixes
+
+* handle npm pack output with build logs ([f60b838](https://github.com/TakahashiNguyen/typeorm-d1/commit/f60b838840dc739e6f733a640d76a0e75498a2c6))
+* improve JSON parsing in verify-package script ([#2](https://github.com/TakahashiNguyen/typeorm-d1/issues/2)) ([dc42b3f](https://github.com/TakahashiNguyen/typeorm-d1/commit/dc42b3f8b59c2a917fd32eed31374ab3abf1f0d4))
+* trigger package.json fix ([4b2bdd7](https://github.com/TakahashiNguyen/typeorm-d1/commit/4b2bdd7faf6faaf2c9b54e5d27f0b1c1e5e5c879))
+
 # 1.0.0 (2026-07-30)
 
 
